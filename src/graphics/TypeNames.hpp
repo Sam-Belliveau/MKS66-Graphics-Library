@@ -10,7 +10,7 @@ namespace SPGL
     using Float64 = double;
     using Float32 = float;
 
-    using FloatMax = Float64;
+    using FloatMax = Float80;
 
     /* Integers */
     using Size = std::size_t;
