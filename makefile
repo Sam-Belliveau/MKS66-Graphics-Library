@@ -13,7 +13,7 @@ OBJS=$(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRCS))
 
 # Compiler / Compiler Settings
 LINKS=-lm
-FLAGS=-O2
+FLAGS=-std=c++17 -O2
 COMPILER=g++ $(FLAGS)
 
 # Command to create directory

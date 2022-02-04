@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2022 Sam Belliveau
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ */
+
 #ifndef SPGL_IMAGE_HPP
 #define SPGL_IMAGE_HPP 1
 
@@ -33,18 +47,18 @@ namespace SPGL // Definitions
         using const_reverse_iterator = std::vector<value_type>::const_reverse_iterator;
 
     public: /* Information */
-        Vector2D<Size> vecsize() const noexcept { return img_size; }
-        Size height() const noexcept { return img_size.y; }
-        Size width()  const noexcept { return img_size.x; }
-        bool empty()  const noexcept { return (img_size.x | img_size.y) == 0; }
-        Size size()   const noexcept { return img_size.x * img_size.y; }
+        Vector2D<Size> vecsize() const { return img_size; }
+        Size height() const { return img_size.y; }
+        Size width()  const { return img_size.x; }
+        bool empty()  const { return (img_size.x | img_size.y) == 0; }
+        Size size()   const { return img_size.x * img_size.y; }
 
-        const value_type* data() const noexcept { return img_data.data(); }
-        value_type* data() noexcept { return img_data.data(); }
+        const value_type* data() const { return img_data.data(); }
+        value_type* data() { return img_data.data(); }
 
     public: /* Constructors */
         // Default Constructor
-        Image() noexcept {}
+        Image() {}
 
         // Copy/Move Constructors
         Image(const Image& in) = default;
@@ -63,22 +77,22 @@ namespace SPGL // Definitions
         }
 
     public: /* Functions */
-        value_type& operator[](Size i) noexcept
+        value_type& operator[](Size i)
         { return img_data[i]; }
 
-        const value_type& operator[](Size i) const noexcept 
+        const value_type& operator[](Size i) const 
         { return img_data[i]; }
 
-        value_type& operator()(Size i) noexcept 
+        value_type& operator()(Size i) 
         { return img_data[i]; }
 
-        const value_type& operator()(Size i) const noexcept 
+        const value_type& operator()(Size i) const 
         { return img_data[i]; }
 
-        value_type& operator()(Size inX, Size inY) noexcept 
+        value_type& operator()(Size inX, Size inY) 
         { return img_data[inY*width() + inX]; }
 
-        const value_type& operator()(Size inX, Size inY) const noexcept 
+        const value_type& operator()(Size inX, Size inY) const 
         { return img_data[inY*width() + inX]; }
 
         value_type& getPixel(Size inX, Size inY)
@@ -100,21 +114,21 @@ namespace SPGL // Definitions
         Vector2D<Size> img_size;
 
     public: /* Iterators */
-        auto begin() noexcept { return std::begin(img_data); }
-        auto begin() const noexcept { return std::cbegin(img_data); }
-        auto cbegin() const noexcept { return std::cbegin(img_data); }
+        auto begin() { return std::begin(img_data); }
+        auto begin() const { return std::cbegin(img_data); }
+        auto cbegin() const { return std::cbegin(img_data); }
 
-        auto end() noexcept { return std::end(img_data); }
-        auto end() const noexcept { return std::cend(img_data); }
-        auto cend() const noexcept { return std::cend(img_data); }
+        auto end() { return std::end(img_data); }
+        auto end() const { return std::cend(img_data); }
+        auto cend() const { return std::cend(img_data); }
 
-        auto rbegin() noexcept { return std::end(img_data); }
-        auto rbegin() const noexcept { return std::cend(img_data); }
-        auto crbegin() const noexcept { return std::cend(img_data); }
+        auto rbegin() { return std::end(img_data); }
+        auto rbegin() const { return std::cend(img_data); }
+        auto crbegin() const { return std::cend(img_data); }
 
-        auto rend() noexcept { return std::begin(img_data); }
-        auto rend() const noexcept { return std::cbegin(img_data); }
-        auto crend() const noexcept { return std::cbegin(img_data); }
+        auto rend() { return std::begin(img_data); }
+        auto rend() const { return std::cbegin(img_data); }
+        auto crend() const { return std::cbegin(img_data); }
     };
 }
 

@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2022 Sam Belliveau
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ */
+
 #ifndef SPGL_COLOR_HPP
 #define SPGL_COLOR_HPP 1
 
@@ -10,7 +24,7 @@ namespace SPGL // Definitions
     struct Color
     {
     private: /* Helper Functions */
-        constexpr static UInt8 clamp(IntMax i) noexcept 
+        constexpr static UInt8 clamp(IntMax i) 
         {
             if(255 < i) return 255;
             if(i < 0) return 0;
@@ -22,17 +36,17 @@ namespace SPGL // Definitions
         {
         public: // Methods
             // Default Constructor
-            constexpr HSV() noexcept : v{0}, s{0}, h{0} {}
+            constexpr HSV() : v{0}, s{0}, h{0} {}
 
             // Copy Constructors
             HSV(const HSV &in) = default;
             HSV& operator=(const HSV &in) = default;
 
             // Custom Constructors
-            constexpr HSV(const IntMax ih, const IntMax is = 255, const IntMax iv = 255) noexcept
+            constexpr HSV(const IntMax ih, const IntMax is = 255, const IntMax iv = 255)
                 : v{clamp(iv)}, s{clamp(is)}, h{clamp(ih)} {}
 
-            constexpr HSV(const Color in) noexcept
+            constexpr HSV(const Color in)
                 : v{0}, s{0}, h{0}
             {
                 /*** ALGORITHM BY: Leszek Szary (Stack Overflow User) ***/
@@ -54,9 +68,9 @@ namespace SPGL // Definitions
             }
 
         public: // Setter Functions
-            constexpr HSV& setH(IntMax ih) noexcept { h = clamp(ih); return *this; }
-            constexpr HSV& setS(IntMax is) noexcept { s = clamp(is); return *this; }
-            constexpr HSV& setV(IntMax iv) noexcept { v = clamp(iv); return *this; }
+            constexpr HSV& setH(IntMax ih) { h = clamp(ih); return *this; }
+            constexpr HSV& setS(IntMax is) { s = clamp(is); return *this; }
+            constexpr HSV& setV(IntMax iv) { v = clamp(iv); return *this; }
 
         public: // Variables
             UInt8 v;
@@ -72,7 +86,7 @@ namespace SPGL // Definitions
          * Every 2 bits store the index      *
          * of a color channel, you can       *
          * order it any way that you want.   */
-        enum ByteOrder : UInt8
+        enum class ByteOrder : UInt8
         {
             RGBA = 0x1b, RGAB = 0x1e, RBGA = 0x27,
             RBAG = 0x36, RAGB = 0x2d, RABG = 0x39,
@@ -86,7 +100,7 @@ namespace SPGL // Definitions
 
     public: /* Functions */
         // Default Constructor
-        constexpr Color() noexcept : a{0xff}, b{0}, g{0}, r{0} {}
+        constexpr Color() : a{0xff}, b{0}, g{0}, r{0} {}
 
         // Copy Constructor
         Color(const Color &in) = default;
@@ -94,11 +108,11 @@ namespace SPGL // Definitions
 
         // RGBA Constructor
         constexpr Color(const IntMax ir, const IntMax ig,
-                        const IntMax ib, const IntMax ia = 0xff) noexcept
+                        const IntMax ib, const IntMax ia = 0xff)
                         : a{clamp(ia)}, b{clamp(ib)}, g{clamp(ig)}, r{clamp(ir)} {}
 
         // HSV Constructor
-        constexpr Color(const HSV in) noexcept : a{0xff}, b{in.s}, g{in.s}, r{in.s}
+        constexpr Color(const HSV in) : a{0xff}, b{in.s}, g{in.s}, r{in.s}
         {
             /*** ALGORITHM BY: Leszek Szary (Stack Overflow User) ***/
             if (in.s != 0)
@@ -122,14 +136,16 @@ namespace SPGL // Definitions
         }
 
         // Grayscale Constructor
-        constexpr Color(const UInt8 in) noexcept : a{0xff}, b{in}, g{in}, r{in} {}
+        constexpr Color(const UInt8 in) : a{0xff}, b{in}, g{in}, r{in} {}
 
         // 32 bit int output
         template<ByteOrder order = ByteOrder::RGBA>
-        constexpr UInt32 toInt() const noexcept
+        constexpr UInt32 toInt() const
         {
-            return  (r << ((order >> 5) & 6)) | (g << ((order >> 3) & 6)) |
-                    (b << ((order >> 1) & 6)) | (a << ((order << 1) & 6));
+            return  (r << ((static_cast<UInt8>(order) >> 5) & 6)) | 
+                    (g << ((static_cast<UInt8>(order) >> 3) & 6)) |
+                    (b << ((static_cast<UInt8>(order) >> 1) & 6)) | 
+                    (a << ((static_cast<UInt8>(order) << 1) & 6));
         }
 
     public: /* Variables */
@@ -139,13 +155,13 @@ namespace SPGL // Definitions
         UInt8 r; // SDL2
 
     public: /* Setter Functions */
-        constexpr Color& setA(IntMax ia) noexcept { a = clamp(ia); return *this; }
-        constexpr Color& setB(IntMax ib) noexcept { b = clamp(ib); return *this; }
-        constexpr Color& setG(IntMax ig) noexcept { g = clamp(ig); return *this; }
-        constexpr Color& setR(IntMax ir) noexcept { r = clamp(ir); return *this; }
+        constexpr Color& setA(IntMax ia) { a = clamp(ia); return *this; }
+        constexpr Color& setB(IntMax ib) { b = clamp(ib); return *this; }
+        constexpr Color& setG(IntMax ig) { g = clamp(ig); return *this; }
+        constexpr Color& setR(IntMax ir) { r = clamp(ir); return *this; }
 
     public: /* Math Operators */
-        constexpr Color& operator+=(const Color& rhs) noexcept
+        constexpr Color& operator+=(const Color& rhs)
         {
             setA(IntMax(a) + IntMax(rhs.a));
             setB(IntMax(b) + IntMax(rhs.b));
@@ -154,7 +170,7 @@ namespace SPGL // Definitions
             return *this;
         }
 
-        constexpr Color& operator-=(const Color& rhs) noexcept
+        constexpr Color& operator-=(const Color& rhs)
         {
             setA(IntMax(a) - IntMax(rhs.a));
             setB(IntMax(b) - IntMax(rhs.b));
@@ -164,7 +180,7 @@ namespace SPGL // Definitions
         }
 
         template<typename T>
-        constexpr Color& operator*=(const T& rhs) noexcept
+        constexpr Color& operator*=(const T& rhs)
         {
             setA(IntMax(T(a) * rhs));
             setB(IntMax(T(b) * rhs));
@@ -174,7 +190,7 @@ namespace SPGL // Definitions
         }
 
         template<typename T>
-        constexpr Color& operator/=(const T& rhs) noexcept
+        constexpr Color& operator/=(const T& rhs)
         {
             setA(IntMax(T(a) / rhs));
             setB(IntMax(T(b) / rhs));
