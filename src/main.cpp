@@ -1,3 +1,5 @@
+/*** FULL SOURCE CODE @ https://github.com/Sam-Belliveau/MKS66-Graphics-Library ***/
+
 #include <iostream>
 #include <fstream>
 
@@ -8,12 +10,12 @@
 
 int main()
 {
-    SPGL::Image test(640, 240, SPGL::Color::Red);
+    SPGL::Image image(512, 512, SPGL::Color::Red);
 
     SPGL::UInt8 hue = 128;
-    for(SPGL::Color& c : test)
+    for(SPGL::Color& c : image)
     {
-        hue += (rand() % 7) - 3;
+        hue += (rand() % 3) - 1;
         c = SPGL::Color::HSV(hue);
     }
 
@@ -21,7 +23,7 @@ int main()
 
     std::ofstream file;
     file.open("./test_image.ppm");
-    file << test;
+    file << image;
 
     std::cout << "Finished Writing!\n";
 }

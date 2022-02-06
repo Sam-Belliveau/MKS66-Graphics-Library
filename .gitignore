@@ -10,3 +10,7 @@ obj/
 bin/
 .vscode/
 *.ppm
+*.png
+*.jpg
+*.jpeg
+*.bmp
