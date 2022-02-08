@@ -63,9 +63,10 @@ namespace SPGL
         Size line_size = 0;
         for(const Color& color : image)
         { 
-            line_size += 4; write_byte(file, color.r) << ' ';
-            line_size += 4; write_byte(file, color.g) << ' ';
-            line_size += 3; write_byte(file, color.b);
+            Color::Byte raw = color;
+            line_size += 4; write_byte(file, raw.r) << ' ';
+            line_size += 4; write_byte(file, raw.g) << ' ';
+            line_size += 3; write_byte(file, raw.b);
 
             if(line_size < PPM::MAX_LINE_SIZE)
             {

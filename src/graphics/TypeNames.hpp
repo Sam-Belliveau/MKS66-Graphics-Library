@@ -23,6 +23,7 @@ namespace SPGL
     using Float80 = long double;
     using Float64 = double;
     using Float32 = float;
+    using Float = Float64;
 
     using FloatMax = Float80;
 

@@ -14,15 +14,21 @@
 
 #define OUTPUT_FILE_NAME "output_image.ppm"
 
-constexpr SPGL::Size WIDTH = 64;
-constexpr SPGL::Size HEIGHT = 46;
+constexpr SPGL::Size WIDTH = 500;
+constexpr SPGL::Size HEIGHT = 500;
 
 
 int main()
 {
     SPGL::Image image(WIDTH, HEIGHT, SPGL::Color::Black);
 
-    auto line = SPGL::BresenhamLine(SPGL::Vector2i(10, 10), SPGL::Vector2i(30, 20), SPGL::Color::White);
+    auto line = SPGL::Line<false>(SPGL::Vector2i(100, 100), SPGL::Vector2i(300, 200), SPGL::Color::Red);
+    line(image);
+
+    line = SPGL::Line(SPGL::Vector2i(100, 100), SPGL::Vector2i(200, 300), SPGL::Color::Blue);
+    line(image);
+    
+    line = SPGL::Line(SPGL::Vector2i(200, 300), SPGL::Vector2i(300, 200), SPGL::Color::Green);
     line(image);
     
     std::cerr << "Opening Image File! [" OUTPUT_FILE_NAME "]\n";
