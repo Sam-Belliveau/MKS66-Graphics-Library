@@ -77,6 +77,7 @@ namespace SPGL // Definitions
         }
 
     public: /* Functions */
+        // Single value indexing
         value_type& operator[](Size i)
         { return img_data[i]; }
 
@@ -89,12 +90,14 @@ namespace SPGL // Definitions
         const value_type& operator()(Size i) const 
         { return img_data[i]; }
 
+        // Double value indexing (unsafe)
         value_type& operator()(Size inX, Size inY) 
         { return img_data[inY*width() + inX]; }
 
         const value_type& operator()(Size inX, Size inY) const 
         { return img_data[inY*width() + inX]; }
 
+        // Double value indexing (safe)
         value_type& getPixel(Size inX, Size inY)
         {
             if(inX > width())  throw std::out_of_range("X Too Large!");
@@ -108,6 +111,26 @@ namespace SPGL // Definitions
             if(inY > height()) throw std::out_of_range("Y Too Large!");
             return img_data[inY*width() + inX];
         }
+
+        // Vector indexing (unsafe)
+        value_type& operator[](Vector2s i)
+        { return operator()(i.x, i.y); }
+
+        const value_type& operator[](Vector2s i) const 
+        { return operator()(i.x, i.y); }
+
+        value_type& operator()(Vector2s i)
+        { return operator()(i.x, i.y); }
+
+        const value_type& operator()(Vector2s i) const 
+        { return operator()(i.x, i.y); }
+
+        // Vector indexing (unsafe)
+        value_type& getPixel(Vector2s i)
+        { return getPixel(i.x, i.y); }
+
+        const value_type& getPixel(Vector2s i) const
+        { return getPixel(i.x, i.y); }
 
     private: /* Raw Data */
         std::vector<value_type> img_data;
