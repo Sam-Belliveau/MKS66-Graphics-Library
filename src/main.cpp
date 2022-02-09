@@ -22,14 +22,35 @@ int main()
 {
     SPGL::Image image(WIDTH, HEIGHT, SPGL::Color::Black);
 
-    auto line = SPGL::Line<false>(SPGL::Vector2i(100, 100), SPGL::Vector2i(300, 200), SPGL::Color::Red);
-    line(image);
-
-    line = SPGL::Line(SPGL::Vector2i(100, 100), SPGL::Vector2i(200, 300), SPGL::Color::Blue);
-    line(image);
+    for(int i = 50; i < 250; i += 10)
+    {
+        auto line = SPGL::Line<false>(SPGL::Vector2i(250, 50), SPGL::Vector2i(i, 450), SPGL::Color::Red);
+        line(image);
+    }
     
-    line = SPGL::Line(SPGL::Vector2i(200, 300), SPGL::Vector2i(300, 200), SPGL::Color::Green);
-    line(image);
+    for(int i = 250; i < 450; i += 10)
+    {
+        auto line = SPGL::Line<true>(SPGL::Vector2i(250, 50), SPGL::Vector2i(i, 450), SPGL::Color::Blue);
+        line(image);
+    }
+    
+    for(int x = 0; x < image.width(); ++x)
+    {
+        for(int y = 0; y < image.width(); ++y)
+        {
+            SPGL::Color::HSV pixel(x + y, double(y) / image.width(), double(x) / image.height());
+            SPGL::Color rgb = pixel;
+
+            for(int i = 0; i < 100; ++i)
+            {
+                pixel = rgb;
+                rgb = pixel;
+            }
+
+            image(x, y) = rgb;
+        }
+    }
+
     
     std::cerr << "Opening Image File! [" OUTPUT_FILE_NAME "]\n";
 

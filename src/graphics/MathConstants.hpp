@@ -12,8 +12,8 @@
  * copies or substantial portions of the Software.
  */
 
-#ifndef SPGL_MATH_CONSTANTS
-#define SPGL_MATH_CONSTANTS
+#ifndef SPGL_MATH_CONSTANTS_HPP
+#define SPGL_MATH_CONSTANTS_HPP
 
 #include "TypeNames.hpp"
 

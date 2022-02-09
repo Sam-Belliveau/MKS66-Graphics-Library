@@ -17,20 +17,13 @@
 
 #include <algorithm> // std::max
 
-#include "./TypeNames.hpp"
+#include "TypeNames.hpp"
+#include "Math.hpp"
 
 namespace SPGL // Definitions
 {
     struct Color
     {
-    private: /* Helper Functions */
-        constexpr static UInt8 getByte(Float channel) 
-        {
-            if(channel <= 0.0) return 0;
-            if(1.0 <= channel) return 255;
-            return UInt8(255.0 * channel);
-        }
-
     public: /* HSV Class */
         struct HSV
         {
@@ -44,34 +37,47 @@ namespace SPGL // Definitions
 
             // Custom Constructors
             constexpr HSV(const Float ih, const Float is = 1.0, const Float iv = 1.0)
-                : h{ih}, s{is}, v{iv} {}
+                : h{math::loop(ih, 360.0)}, s{math::limit(is)}, v{math::limit(iv)} {}
 
-            constexpr HSV(const Color in)
-                : v{0}, s{0}, h{0}
+            constexpr HSV(const Color in) : h{0.0}, s{0.0}, v{0.0}
             {
-                /** TODO **/
+                const Float min = std::min({in.r, in.g, in.b});
+                const Float max = std::max({in.r, in.g, in.b});
+                const Float delta = max - min;
+
+                v = max;
+                if(1e-4 < delta && 0.0 < max)
+                {
+                    s = delta / max;
+                    /**/ if(max <= in.r) h = 0.0 + (in.g - in.b) / delta;
+                    else if(max <= in.g) h = 2.0 + (in.b - in.r) / delta;
+                    else if(max <= in.b) h = 4.0 + (in.r - in.g) / delta;
+                    h = 60.0 * math::loop(h, 6.0);                    
+                }
             }
 
         public: // Variables
             Float h, s, v;
         };  
     
-        struct Byte 
+        struct Bytes
         {
         public: // Methods
             // Default Constructor
-            constexpr Byte() : r{0}, g{}, b{0} {}
+            constexpr Bytes() : r{0}, g{0}, b{0} {}
 
             // Copy Constructors
-            Byte(const Byte &in) = default;
-            Byte& operator=(const Byte &in) = default;
+            Bytes(const Bytes &in) = default;
+            Bytes& operator=(const Bytes &in) = default;
 
             // Custom Constructors
-            constexpr Byte(const UInt8 ir, const UInt8 ig, const UInt8 ib)
+            constexpr Bytes(const UInt8 ir, const UInt8 ig, const UInt8 ib)
                 : r{ir}, g{ig}, b{ib} {}
 
-            constexpr Byte(const Color in)
-                : r{getByte(in.r)}, g{getByte(in.g)}, b{getByte(in.b)} {}
+            constexpr Bytes(const Color in)
+                : r{math::floatToByte(in.r)}
+                , g{math::floatToByte(in.g)}
+                , b{math::floatToByte(in.b)} {}
 
         public: // Variables
             UInt8 r, g, b;
@@ -88,26 +94,53 @@ namespace SPGL // Definitions
 
     public: /* Functions */
         // Default Constructor
-        constexpr Color() : b{0.0}, g{0.0}, r{0.0} {}
+        constexpr Color() : r{0.0}, g{0.0}, b{0.0} {}
 
         // Copy Constructor
         Color(const Color &in) = default;
         Color& operator=(const Color &in) = default;
 
-        // RGBA Constructor
+        // RGB Constructor
         constexpr Color(const Float ir, const Float ig, const Float ib)
-                        : r{ir}, g{ig}, b{ib} {}
+                        : r{math::limit(ir)}
+                        , g{math::limit(ig)}
+                        , b{math::limit(ib)} { }
 
         // HSV Constructor
-        constexpr Color(const HSV in) : b{in.s}, g{in.s}, r{in.s}
+        constexpr Color(const HSV in) : r{in.v}, g{in.v}, b{in.v}
         {
-            if (in.s != 0)
+            if (0.0 < in.s)
             {
+                const Float hue = math::loop(in.h / 60.0, 6.0);
+                const Float fract = math::loop(hue, 1.0);
+                
+                const Float p = in.v * (1.0 - (in.s));
+                const Float q = in.v * (1.0 - (in.s * fract));
+                const Float t = in.v * (1.0 - (in.s * (1.0 - fract)));
+
+                switch(long(hue))
+                {
+                    case 0: r = in.v; g = t; b = p; break;
+                    case 1: r = q; g = in.v; b = p; break;
+                    case 2: r = p; g = in.v; b = t; break;
+                    case 3: r = p; g = q; b = in.v; break;
+                    case 4: r = t; g = p; b = in.v; break;
+                    default: r = in.v; g = p; b = q; break;
+                }
             }
         }
 
+        // Bytes Constructor
+        constexpr Color(const Bytes in) 
+            : r{math::byteToFloat(in.r)}
+            , g{math::byteToFloat(in.g)}
+            , b{math::byteToFloat(in.b)} {}
+
         // Grayscale Constructor
-        constexpr Color(const Float in) : r{in}, g{in}, b{in} {}
+        constexpr Color(const Float in) 
+            : r{math::limit(in)}
+            , g{math::limit(in)}
+            , b{math::limit(in)} {}
 
     public: /* Variables */
         Float r, g, b; 
