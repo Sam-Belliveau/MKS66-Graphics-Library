@@ -24,6 +24,9 @@ namespace SPGL // Definitions
 {
     struct Color
     {
+    public: /* Type Definition */
+        using RepT = Float32;
+
     public: /* HSV Class */
         struct HSV
         {
@@ -36,30 +39,31 @@ namespace SPGL // Definitions
             HSV& operator=(const HSV &in) = default;
 
             // Custom Constructors
-            constexpr HSV(const Float ih, const Float is = 1.0, const Float iv = 1.0)
-                : h{math::loop(ih, 360.0)}, s{math::limit(is)}, v{math::limit(iv)} {}
+            constexpr HSV(const RepT ih, const RepT is = 1.0, const RepT iv = 1.0)
+                : h{math::loop(ih, RepT(360.0))}, s{math::limit(is)}, v{math::limit(iv)} {}
 
             constexpr HSV(const Color in) : h{0.0}, s{0.0}, v{0.0}
             {
-                const Float min = std::min({in.r, in.g, in.b});
-                const Float max = std::max({in.r, in.g, in.b});
-                const Float delta = max - min;
+                const RepT min = std::min({in.r, in.g, in.b});
+                const RepT max = std::max({in.r, in.g, in.b});
+                const RepT delta = max - min;
 
                 v = max;
-                if(1e-4 < delta && 0.0 < max)
+                if(RepT(1e-4) < delta && RepT(0.0) < max)
                 {
                     s = delta / max;
-                    /**/ if(max <= in.r) h = 0.0 + (in.g - in.b) / delta;
-                    else if(max <= in.g) h = 2.0 + (in.b - in.r) / delta;
-                    else if(max <= in.b) h = 4.0 + (in.r - in.g) / delta;
-                    h = 60.0 * math::loop(h, 6.0);                    
+                    /**/ if(max <= in.r) h = RepT(0.0) + (in.g - in.b) / delta;
+                    else if(max <= in.g) h = RepT(2.0) + (in.b - in.r) / delta;
+                    else if(max <= in.b) h = RepT(4.0) + (in.r - in.g) / delta;
+                    h = RepT(60.0) * math::loop(h, RepT(6.0));                    
                 }
             }
 
         public: // Variables
-            Float h, s, v;
+            RepT h, s, v;
         };  
     
+    public: /* Bytes Class */
         struct Bytes
         {
         public: // Methods
@@ -101,7 +105,7 @@ namespace SPGL // Definitions
         Color& operator=(const Color &in) = default;
 
         // RGB Constructor
-        constexpr Color(const Float ir, const Float ig, const Float ib)
+        constexpr Color(const RepT ir, const RepT ig, const RepT ib)
                         : r{math::limit(ir)}
                         , g{math::limit(ig)}
                         , b{math::limit(ib)} { }
@@ -111,12 +115,12 @@ namespace SPGL // Definitions
         {
             if (0.0 < in.s)
             {
-                const Float hue = math::loop(in.h / 60.0, 6.0);
-                const Float fract = math::loop(hue, 1.0);
+                const RepT hue = math::loop(in.h / RepT(60.0), RepT(6.0));
+                const RepT fract = math::loop(hue, RepT(1.0));
                 
-                const Float p = in.v * (1.0 - (in.s));
-                const Float q = in.v * (1.0 - (in.s * fract));
-                const Float t = in.v * (1.0 - (in.s * (1.0 - fract)));
+                const RepT p = in.v * (RepT(1.0) - (in.s));
+                const RepT q = in.v * (RepT(1.0) - (in.s * fract));
+                const RepT t = in.v * (RepT(1.0) - (in.s * (RepT(1.0) - fract)));
 
                 switch(long(hue))
                 {
@@ -132,20 +136,26 @@ namespace SPGL // Definitions
 
         // Bytes Constructor
         constexpr Color(const Bytes in) 
-            : r{math::byteToFloat(in.r)}
-            , g{math::byteToFloat(in.g)}
-            , b{math::byteToFloat(in.b)} {}
+            : r{math::byteToFloat<RepT>(in.r)}
+            , g{math::byteToFloat<RepT>(in.g)}
+            , b{math::byteToFloat<RepT>(in.b)} {}
 
         // Grayscale Constructor
-        constexpr Color(const Float in) 
+        constexpr Color(const RepT in) 
             : r{math::limit(in)}
             , g{math::limit(in)}
             , b{math::limit(in)} {}
 
     public: /* Variables */
-        Float r, g, b; 
+        RepT r, g, b; 
 
     public: /* Math Operators */
+        constexpr static Color average(Color lhs, const Color& rhs, const RepT weight = 0.5)
+        { return lhs.average(rhs, weight); }
+        
+        constexpr Color& average(Color rhs, const RepT weight = 0.5)
+        { return operator*=(RepT(1.0) - weight).operator+=(rhs *= weight); }
+
         constexpr Color& operator+=(const Color& rhs)
         {
             r += rhs.r; g += rhs.g; b += rhs.b;
@@ -195,12 +205,10 @@ namespace SPGL // Implementation
     constexpr Color operator-(Color lhs, const Color& rhs) 
     { return lhs -= rhs; }
 
-    template<typename T>
-    constexpr Color operator*(Color lhs, const T& rhs) 
+    constexpr Color operator*(Color lhs, const Color::RepT rhs) 
     { return lhs *= rhs; }
 
-    template<typename T>
-    constexpr Color operator*(const T& lhs, Color rhs) 
+    constexpr Color operator*(const Color::RepT lhs, Color rhs) 
     { return rhs *= lhs; }
 
     template<typename T>
