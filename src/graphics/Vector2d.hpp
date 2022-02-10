@@ -24,26 +24,26 @@ namespace SPGL
     {
     public: /* Methods */
         // Default Constructor
-        Vector2D() : x{0}, y{0} {}
+        constexpr Vector2D() : x{0}, y{0} {}
 
         // Copy Constructors
-        Vector2D(const Vector2D &in) = default;
-        Vector2D& operator=(const Vector2D &in) = default;
+        constexpr Vector2D(const Vector2D &in) = default;
+        constexpr Vector2D& operator=(const Vector2D &in) = default;
 
         // Custom Constructors
         template<class iT>
-        Vector2D(const Vector2D<iT> &in)
+        constexpr Vector2D(const Vector2D<iT> &in)
             : x{static_cast<T>(in.x)}, y{static_cast<T>(in.y)} {}
 
         template<class iT>
-        Vector2D& operator=(const Vector2D<iT> &in)
+        constexpr Vector2D& operator=(const Vector2D<iT> &in)
         {
             x = static_cast<T>(in.x);
             y = static_cast<T>(in.y);
             return *this;
         }
 
-        Vector2D(const T ix, const T iy) : x{ix}, y{iy} {}
+        constexpr Vector2D(const T ix, const T iy) : x{ix}, y{iy} {}
 
     public: /* Variables */
         T x, y;
@@ -55,7 +55,7 @@ namespace SPGL
     using Vector2s = Vector2D<Size>;
 
     using Vector2f = Vector2D<Float32>;
-    using Vector2d = Vector2D<Float64>;
+    using Vector2d = Vector2D<Float>;
     using Vector2l = Vector2D<Float80>;
 }
 

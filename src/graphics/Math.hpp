@@ -22,14 +22,17 @@
 
 namespace SPGL
 {
-    namespace math
+    namespace Math
     {
         template<class FT>
-        constexpr FT loop(FT x, FT range)
-        { return x - range * std::floor(x / range); }
+        inline constexpr FT loop(FT x, FT range = FT(1.0))
+        {
+            const FT inv = FT(1.0) / range; 
+            return x - range * std::floor(x * inv); 
+        }
 
         template<class FT>
-        constexpr UInt8 floatToByte(FT channel) 
+        inline constexpr UInt8 floatToByte(FT channel) 
         {
             if(channel <= FT(0.0)) return 0;
             if(FT(1.0) <= channel) return 255;
@@ -37,11 +40,11 @@ namespace SPGL
         }
 
         template<class FT>
-        constexpr FT byteToFloat(UInt8 channel) 
+        inline constexpr FT byteToFloat(UInt8 channel) 
         { return channel / FT(255.0); }
 
         template<class FT>
-        constexpr FT limit(FT channel, FT min = FT(0.0), Float max = FT(1.0))
+        inline constexpr FT limit(FT channel, FT min = FT(0.0), Float max = FT(1.0))
         {
             if(channel <= min) return min;
             if(max <= channel) return max;
@@ -49,11 +52,11 @@ namespace SPGL
         }
 
         template<class FT>
-        constexpr FT fpart(FT x)
+        inline constexpr FT fpart(FT x)
         { return x - std::floor(x); }
 
         template<class FT>
-        constexpr FT rfpart(FT x)
+        inline constexpr FT rfpart(FT x)
         { return FT(1.0) - fpart(x); }
     }
 

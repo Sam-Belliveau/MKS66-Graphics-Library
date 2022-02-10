@@ -40,7 +40,7 @@ namespace SPGL // Definitions
 
             // Custom Constructors
             constexpr HSV(const RepT ih, const RepT is = 1.0, const RepT iv = 1.0)
-                : h{math::loop(ih, RepT(360.0))}, s{math::limit(is)}, v{math::limit(iv)} {}
+                : h{Math::loop(ih, RepT(360.0))}, s{Math::limit(is)}, v{Math::limit(iv)} {}
 
             constexpr HSV(const Color in) : h{0.0}, s{0.0}, v{0.0}
             {
@@ -55,7 +55,7 @@ namespace SPGL // Definitions
                     /**/ if(max <= in.r) h = RepT(0.0) + (in.g - in.b) / delta;
                     else if(max <= in.g) h = RepT(2.0) + (in.b - in.r) / delta;
                     else if(max <= in.b) h = RepT(4.0) + (in.r - in.g) / delta;
-                    h = RepT(60.0) * math::loop(h, RepT(6.0));                    
+                    h = RepT(60.0) * Math::loop(h, RepT(6.0));                    
                 }
             }
 
@@ -79,9 +79,9 @@ namespace SPGL // Definitions
                 : r{ir}, g{ig}, b{ib} {}
 
             constexpr Bytes(const Color in)
-                : r{math::floatToByte(in.r)}
-                , g{math::floatToByte(in.g)}
-                , b{math::floatToByte(in.b)} {}
+                : r{Math::floatToByte(in.r)}
+                , g{Math::floatToByte(in.g)}
+                , b{Math::floatToByte(in.b)} {}
 
         public: // Variables
             UInt8 r, g, b;
@@ -101,22 +101,22 @@ namespace SPGL // Definitions
         constexpr Color() : r{0.0}, g{0.0}, b{0.0} {}
 
         // Copy Constructor
-        Color(const Color &in) = default;
-        Color& operator=(const Color &in) = default;
+        constexpr Color(const Color &in) = default;
+        constexpr Color& operator=(const Color &in) = default;
 
         // RGB Constructor
         constexpr Color(const RepT ir, const RepT ig, const RepT ib)
-                        : r{math::limit(ir)}
-                        , g{math::limit(ig)}
-                        , b{math::limit(ib)} { }
+                        : r{Math::limit(ir)}
+                        , g{Math::limit(ig)}
+                        , b{Math::limit(ib)} { }
 
         // HSV Constructor
         constexpr Color(const HSV in) : r{in.v}, g{in.v}, b{in.v}
         {
             if (0.0 < in.s)
             {
-                const RepT hue = math::loop(in.h / RepT(60.0), RepT(6.0));
-                const RepT fract = math::loop(hue, RepT(1.0));
+                const RepT hue = Math::loop(in.h / RepT(60.0), RepT(6.0));
+                const RepT fract = Math::loop(hue, RepT(1.0));
                 
                 const RepT p = in.v * (RepT(1.0) - (in.s));
                 const RepT q = in.v * (RepT(1.0) - (in.s * fract));
@@ -136,15 +136,15 @@ namespace SPGL // Definitions
 
         // Bytes Constructor
         constexpr Color(const Bytes in) 
-            : r{math::byteToFloat<RepT>(in.r)}
-            , g{math::byteToFloat<RepT>(in.g)}
-            , b{math::byteToFloat<RepT>(in.b)} {}
+            : r{Math::byteToFloat<RepT>(in.r)}
+            , g{Math::byteToFloat<RepT>(in.g)}
+            , b{Math::byteToFloat<RepT>(in.b)} {}
 
         // Grayscale Constructor
         constexpr Color(const RepT in) 
-            : r{math::limit(in)}
-            , g{math::limit(in)}
-            , b{math::limit(in)} {}
+            : r{Math::limit(in)}
+            , g{Math::limit(in)}
+            , b{Math::limit(in)} {}
 
     public: /* Variables */
         RepT r, g, b; 
