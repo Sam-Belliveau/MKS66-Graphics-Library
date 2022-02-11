@@ -46,14 +46,14 @@ namespace SPGL // Definitions
         using const_reverse_iterator = std::vector<value_type>::const_reverse_iterator;
 
     public: /* Information */
-        Vector2D<Size> vecsize() const { return img_size; }
-        Size height() const { return img_size.y; }
-        Size width()  const { return img_size.x; }
-        bool empty()  const { return (img_size.x | img_size.y) == 0; }
-        Size size()   const { return img_size.x * img_size.y; }
+        Vector2s vecsize() const { return _img_size; }
+        Size height() const { return _img_size.y; }
+        Size width()  const { return _img_size.x; }
+        bool empty()  const { return (_img_size.x | _img_size.y) == 0; }
+        Size size()   const { return _img_size.x * _img_size.y; }
 
-        const value_type* data() const { return img_data.data(); }
-        value_type* data() { return img_data.data(); }
+        const value_type* data() const { return _img_data.data(); }
+        value_type* data() { return _img_data.data(); }
 
     public: /* Constructors */
         // Default Constructor
@@ -66,90 +66,58 @@ namespace SPGL // Definitions
         Image& operator=(Image&& in) = default;
 
         // Create Functions
-        Image(Size x, Size y, Color color = Color(0,0,0)) { create(x, y, color); }
-        Image& create(Size x, Size y, Color color = Color(0,0,0)) 
-        {
-            img_size = Vector2s(x, y);
-            img_data.resize(x*y);
-            std::fill(img_data.begin(), img_data.end(), color);
-            return *this;
-        }
+        Image(Size x, Size y, Color color = Color(0,0,0))
+            : _img_size{x, y}
+            , _img_data{std::vector<Color>(x * y, color)}
+            , _garbage{} {}
 
     public: /* Functions */
-        // Single value indexing
-        value_type& operator[](Size i)
-        { return img_data[i]; }
+        /*** Single value indexing ***/
+        /***/ value_type& operator[](Size i) /***/ { return _img_data[i]; }
+        const value_type& operator[](Size i) const { return _img_data[i]; }
+        /***/ value_type& operator()(Size i) /***/ { return _img_data[i]; }
+        const value_type& operator()(Size i) const { return _img_data[i]; }
 
-        const value_type& operator[](Size i) const 
-        { return img_data[i]; }
-
-        value_type& operator()(Size i) 
-        { return img_data[i]; }
-
-        const value_type& operator()(Size i) const 
-        { return img_data[i]; }
-
-        // Double value indexing (unsafe)
-        value_type& operator()(Size inX, Size inY) 
-        { return img_data[inY*width() + inX]; }
-
-        const value_type& operator()(Size inX, Size inY) const 
-        { return img_data[inY*width() + inX]; }
-
-        // Double value indexing (safe)
-        value_type& getPixel(Size inX, Size inY)
+        /*** Double value indexing ***/
+        /***/ value_type& getPixel(Size x, Size y)
         {
-            if(inX > width())  throw std::out_of_range("X Too Large!");
-            if(inY > height()) throw std::out_of_range("Y Too Large!");
-            return img_data[inY*width() + inX];
+            if(0 > x || x > width())  return _garbage;
+            if(0 > y || y > height()) return _garbage;
+            return _img_data[y * width() + x];
         }
 
-        const value_type& getPixel(Size inX, Size inY) const
-        {
-            if(inX > width())  throw std::out_of_range("X Too Large!");
-            if(inY > height()) throw std::out_of_range("Y Too Large!");
-            return img_data[inY*width() + inX];
-        }
+        const value_type& getPixel(Size x, Size y) const { return getPixel(x, y); }
+        /***/ value_type& getPixel(Vector2s i)     /***/ { return getPixel(i.x, i.y); }
+        const value_type& getPixel(Vector2s i)     const { return getPixel(i.x, i.y); }
+        
+        /***/ value_type& operator()(Size x, Size y) /***/ { return getPixel(x, y); }
+        const value_type& operator()(Size x, Size y) const { return getPixel(x, y); }
 
-        // Vector indexing (unsafe)
-        value_type& operator[](Vector2s i)
-        { return operator()(i.x, i.y); }
-
-        const value_type& operator[](Vector2s i) const 
-        { return operator()(i.x, i.y); }
-
-        value_type& operator()(Vector2s i)
-        { return operator()(i.x, i.y); }
-
-        const value_type& operator()(Vector2s i) const 
-        { return operator()(i.x, i.y); }
-
-        // Vector indexing (unsafe)
-        value_type& getPixel(Vector2s i)
-        { return getPixel(i.x, i.y); }
-
-        const value_type& getPixel(Vector2s i) const
-        { return getPixel(i.x, i.y); }
+        /***/ value_type& operator[](Vector2s i) /***/ { return getPixel(i.x, i.y); }
+        const value_type& operator[](Vector2s i) const { return getPixel(i.x, i.y); }
+        /***/ value_type& operator()(Vector2s i) /***/ { return getPixel(i.x, i.y); }
+        const value_type& operator()(Vector2s i) const { return getPixel(i.x, i.y); }
 
     private: /* Raw Data */
-        std::vector<value_type> img_data;
-        Vector2D<Size> img_size;
+        std::vector<value_type> _img_data;
+        Vector2s _img_size;
+        Color _garbage;
 
     public: /* Iterators */
-        auto begin() { return std::begin(img_data); }
-        auto begin() const { return std::cbegin(img_data); }
-        auto cbegin() const { return std::cbegin(img_data); }
+        auto begin() { return std::begin(_img_data); }
+        auto begin() const { return std::cbegin(_img_data); }
+        auto cbegin() const { return std::cbegin(_img_data); }
 
-        auto end() { return std::end(img_data); }
-        auto end() const { return std::cend(img_data); }
-        auto cend() const { return std::cend(img_data); }
+        auto end() { return std::end(_img_data); }
+        auto end() const { return std::cend(_img_data); }
+        auto cend() const { return std::cend(_img_data); }
 
-        auto rbegin() { return std::end(img_data); }
-        auto rbegin() const { return std::cend(img_data); }
-        auto crbegin() const { return std::cend(img_data); }
+        auto rbegin() { return std::reverse_iterator(std::end(_img_data)); }
+        auto rbegin() const { return std::reverse_iterator(std::cend(_img_data)); }
+        auto crbegin() const { return std::reverse_iterator(std::cend(_img_data)); }
 
-        auto rend() { return std::begin(img_data); }
-        auto rend() const { return std::cbegin(img_data); }
-        auto crend() const { return std::cbegin(img_data); }
+        auto rend() { return std::reverse_iterator(std::begin(_img_data)); }
+        auto rend() const { return std::reverse_iterator(std::cbegin(_img_data)); }
+        auto crend() const { return std::reverse_iterator(std::cbegin(_img_data)); }
     };
 }
