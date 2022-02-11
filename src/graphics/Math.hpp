@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Copyright (c) 2022 Sam Belliveau
  * 
@@ -12,9 +14,6 @@
  * copies or substantial portions of the Software.
  */
 
-#ifndef SPGL_MATH_HPP
-#define SPGL_MATH_HPP
-
 #include "TypeNames.hpp"
 #include "MathConstants.hpp"
 
@@ -25,7 +24,7 @@ namespace SPGL
     namespace Math
     {
         template<class FT>
-        inline constexpr FT loop(FT x, FT range = FT(1.0))
+        inline constexpr FT loop(FT x, const FT range = FT(1.0))
         {
             const FT inv = FT(1.0) / range; 
             return x - range * std::floor(x * inv); 
@@ -61,5 +60,3 @@ namespace SPGL
     }
 
 }
-
-#endif

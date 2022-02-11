@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Copyright (c) 2022 Sam Belliveau
  * 
@@ -11,9 +13,6 @@
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  */
-
-#ifndef SPGL_PPM_SUPPORT_HPP
-#define SPGL_PPM_SUPPORT_HPP
 
 #include <ostream>
 #include "Image.hpp"
@@ -63,7 +62,7 @@ namespace SPGL
         Size line_size = 0;
         for(const Color& color : image)
         { 
-            Color::Bytes raw = color;
+            Color::Bytes raw = color.bytes();
             line_size += 4; write_byte(file, raw.r) << ' ';
             line_size += 4; write_byte(file, raw.g) << ' ';
             line_size += 3; write_byte(file, raw.b);
@@ -81,7 +80,4 @@ namespace SPGL
 
         return file;
     }
-
 }
-
-#endif

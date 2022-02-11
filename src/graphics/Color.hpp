@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Copyright (c) 2022 Sam Belliveau
  * 
@@ -12,9 +14,6 @@
  * copies or substantial portions of the Software.
  */
 
-#ifndef SPGL_COLOR_HPP
-#define SPGL_COLOR_HPP 1
-
 #include <algorithm> // std::max
 
 #include "TypeNames.hpp"
@@ -27,42 +26,6 @@ namespace SPGL // Definitions
     public: /* Type Definition */
         using RepT = Float32;
 
-    public: /* HSV Class */
-        struct HSV
-        {
-        public: // Methods
-            // Default Constructor
-            constexpr HSV() : v{0.0}, s{0.0}, h{0.0} {}
-
-            // Copy Constructors
-            HSV(const HSV &in) = default;
-            HSV& operator=(const HSV &in) = default;
-
-            // Custom Constructors
-            constexpr HSV(const RepT ih, const RepT is = 1.0, const RepT iv = 1.0)
-                : h{Math::loop(ih, RepT(360.0))}, s{Math::limit(is)}, v{Math::limit(iv)} {}
-
-            constexpr HSV(const Color in) : h{0.0}, s{0.0}, v{0.0}
-            {
-                const RepT min = std::min({in.r, in.g, in.b});
-                const RepT max = std::max({in.r, in.g, in.b});
-                const RepT delta = max - min;
-
-                v = max;
-                if(RepT(1e-4) < delta && RepT(0.0) < max)
-                {
-                    s = delta / max;
-                    /**/ if(max <= in.r) h = RepT(0.0) + (in.g - in.b) / delta;
-                    else if(max <= in.g) h = RepT(2.0) + (in.b - in.r) / delta;
-                    else if(max <= in.b) h = RepT(4.0) + (in.r - in.g) / delta;
-                    h = RepT(60.0) * Math::loop(h, RepT(6.0));                    
-                }
-            }
-
-        public: // Variables
-            RepT h, s, v;
-        };  
-    
     public: /* Bytes Class */
         struct Bytes
         {
@@ -111,27 +74,30 @@ namespace SPGL // Definitions
                         , b{Math::limit(ib)} { }
 
         // HSV Constructor
-        constexpr Color(const HSV in) : r{in.v}, g{in.v}, b{in.v}
+        constexpr static Color HSV(const RepT h, const RepT s = RepT(1.0), const RepT v = RepT(1.0))
         {
-            if (0.0 < in.s)
+            if (RepT(0.0) <= s)
             {
-                const RepT hue = Math::loop(in.h / RepT(60.0), RepT(6.0));
-                const RepT fract = Math::loop(hue, RepT(1.0));
+                constexpr RepT SCALE = RepT(1.0) / RepT(60.0);
+                const RepT hue = Math::loop(h * SCALE, RepT(6.0));
+                const RepT fract = Math::loop(hue);
                 
-                const RepT p = in.v * (RepT(1.0) - (in.s));
-                const RepT q = in.v * (RepT(1.0) - (in.s * fract));
-                const RepT t = in.v * (RepT(1.0) - (in.s * (RepT(1.0) - fract)));
+                const RepT p = v * (RepT(1.0) - (s));
+                const RepT q = v * (RepT(1.0) - (s * fract));
+                const RepT t = v * (RepT(1.0) - (s * (RepT(1.0) - fract)));
 
                 switch(long(hue))
                 {
-                    case 0: r = in.v; g = t; b = p; break;
-                    case 1: r = q; g = in.v; b = p; break;
-                    case 2: r = p; g = in.v; b = t; break;
-                    case 3: r = p; g = q; b = in.v; break;
-                    case 4: r = t; g = p; b = in.v; break;
-                    default: r = in.v; g = p; b = q; break;
+                    case 0:  return Color(v, t, p);
+                    case 1:  return Color(q, v, p);
+                    case 2:  return Color(p, v, t);
+                    case 3:  return Color(p, q, v);
+                    case 4:  return Color(t, p, v);
+                    default: return Color(v, p, q);
                 }
             }
+
+            return Color(v);
         }
 
         // Bytes Constructor
@@ -145,6 +111,10 @@ namespace SPGL // Definitions
             : r{Math::limit(in)}
             , g{Math::limit(in)}
             , b{Math::limit(in)} {}
+
+    public: /* Conversion to Byte Type */
+        constexpr Bytes bytes() const
+        { return Bytes(*this); }
 
     public: /* Variables */
         RepT r, g, b; 
@@ -228,5 +198,3 @@ namespace SPGL // Implementation
     const Color Color::Cyan   = Color(0.0, 1.0, 1.0);
     const Color Color::Purple = Color(1.0, 0.0, 1.0);
 }
-
-#endif // SPGL_COLOR_HPP

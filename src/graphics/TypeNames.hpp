@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Copyright (c) 2022 Sam Belliveau
  * 
@@ -11,9 +13,6 @@
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  */
-
-#ifndef SPGL_TYPENAMES_HPP
-#define SPGL_TYPENAMES_HPP 1
 
 #include <cstdint>
 
@@ -45,5 +44,3 @@ namespace SPGL
     using UInt8 = std::uint8_t;
     using Int8 = std::int8_t;
 }
-
-#endif //SPGL_TYPENAMES_HPP

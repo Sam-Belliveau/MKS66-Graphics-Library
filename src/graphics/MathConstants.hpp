@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Copyright (c) 2022 Sam Belliveau
  * 
@@ -11,9 +13,6 @@
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  */
-
-#ifndef SPGL_MATH_CONSTANTS_HPP
-#define SPGL_MATH_CONSTANTS_HPP
 
 #include "TypeNames.hpp"
 
@@ -31,5 +30,3 @@ namespace SPGL
             = 1.618033988749894848204586834365L;
     }
 }
-
-#endif

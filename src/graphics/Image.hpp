@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Copyright (c) 2022 Sam Belliveau
  * 
@@ -11,9 +13,6 @@
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  */
-
-#ifndef SPGL_IMAGE_HPP
-#define SPGL_IMAGE_HPP 1
 
 #include <vector> // std::vector
 #include <algorithm> // std::copy
@@ -154,5 +153,3 @@ namespace SPGL // Definitions
         auto crend() const { return std::cbegin(img_data); }
     };
 }
-
-#endif // SPGL_IMAGE_HPP

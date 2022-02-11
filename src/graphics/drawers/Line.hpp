@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Copyright (c) 2022 Sam Belliveau
  * 
@@ -12,9 +14,6 @@
  * copies or substantial portions of the Software.
  */
 
-#ifndef SPGL_LINE_HPP
-#define SPGL_LINE_HPP 1
-
 #include <cmath>
 #include <algorithm>
 
@@ -24,7 +23,10 @@
 namespace SPGL 
 {
     template<bool AA = false>
-    class Line
+    class Line;
+
+    template<>
+    class Line<false>
     {
     private:
         int _step;
@@ -60,7 +62,8 @@ namespace SPGL
         inline Color& pixel(Image& buffer, Size x, Size y)
         { return _steep ? buffer(y, x) : buffer(x, y); }
 
-        void fast(Image& buffer)
+    public:
+        void operator()(Image& buffer)
         {
             int D = (_dt.y << 1) - _dt.x;
             int y = _start.y;
@@ -78,39 +81,10 @@ namespace SPGL
                 D += _dt.y << 1;
             } 
         }
-
-        void slow(Image& buffer)
-        {
-            const Float gradient = (_dt.x == 0) ? 1.0 : Float(_dt.y) / Float(_dt.x);
-            Float inter = gradient;
-
-            // End Points
-            pixel(buffer, _start.x, _start.y) = _color;
-            pixel(buffer, _end.x, _end.y) = _color;
-
-            Size y = _start.y;
-            for(Size x = _start.x + 1; x < _end.x; ++x)
-            {
-                pixel(buffer, x, y).average(_color, Float(1.0) - inter); 
-                pixel(buffer, x, y + _step).average(_color, inter); 
-                
-                if((inter += gradient) > Float(1.0))
-                {
-                    inter -= Float(1.0);
-                    y += _step;
-                }
-            }
-        }
-
-    public:
-        void operator()(Image& buffer)
-        {
-            if(AA) slow(buffer);
-            else fast(buffer);
-        }
     };
 
-    class FloatingLine
+    template<>
+    class Line<true>
     {
     private:
         bool _steep;
@@ -131,7 +105,7 @@ namespace SPGL
         Color _color;
 
     public:
-        constexpr FloatingLine(Vector2d start, Vector2d end, Color color)
+        constexpr Line(Vector2d start, Vector2d end, Color color)
             : _steep{}, _dt{}, _gradient{}
             , _start{}, _start_end{}, _start_pixel{}, _start_xgap{}
             , _end{}, _end_end{}, _end_pixel{}, _end_xgap{}
@@ -188,5 +162,3 @@ namespace SPGL
         }
     };
 }
-
-#endif

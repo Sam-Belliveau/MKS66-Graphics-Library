@@ -16,16 +16,16 @@
 
 constexpr SPGL::Size WIDTH = 500;
 constexpr SPGL::Size HEIGHT = 500;
-constexpr double COUNT = 200;
+constexpr double COUNT = 180;
 constexpr double LINE_STEP = 360.0 / COUNT;
-constexpr double SCALE = 3.4;
+constexpr double SCALE = 3.5;
 constexpr double CIRCLE_PART = 0.975;
 
-SPGL::Vector2d getCircle(double rad)
+SPGL::Vector2d getCircle(SPGL::Vector2d offset, double rad)
 {
-    return SPGL::Vector2d(
-        (WIDTH / SCALE) + CIRCLE_PART * (WIDTH / 3.6) * std::cos(rad), 
-        (WIDTH / SCALE) + CIRCLE_PART * (WIDTH / 3.6) * std::sin(rad)
+    return offset + SPGL::Vector2d(
+        (WIDTH / SCALE) + CIRCLE_PART * (WIDTH / SCALE) * std::cos(rad), 
+        (WIDTH / SCALE) + CIRCLE_PART * (WIDTH / SCALE) * std::sin(rad)
     );
 }
 
@@ -49,24 +49,18 @@ int main()
         double rad = SPGL::Math::PI * deg / 180.0;
         double rad2 = 2 * rad;
         double radNext = rad - SPGL::Math::PI * LINE_STEP / 180.0;
-        SPGL::Color color = SPGL::Color::HSV(2.0 * deg, 0.9, 1.0);
-        SPGL::Color wcolor = SPGL::Color::HSV(4 * deg, 0.8, 1.0);
-        SPGL::FloatingLine(getCircle(rad), getCircle(rad2), wcolor)(image);
-        SPGL::FloatingLine(getCircle(rad), getCircle(radNext), color)(image);
-    }
 
-    for(double deg = 360.0; deg >= 0.0; deg -= LINE_STEP)
-    {
-        double rad = SPGL::Math::PI * deg / 180.0;
-        double rad2 = 2 * rad;
-        double radNext = rad - SPGL::Math::PI * LINE_STEP / 180.0;
-        SPGL::Vector2i offset(WIDTH * (SCALE - 2.0) / SCALE, HEIGHT * (SCALE - 2.0) / SCALE);
         SPGL::Color color = SPGL::Color::HSV(2.0 * deg, 0.9, 1.0);
-        SPGL::Color wcolor = SPGL::Color::HSV(4 * deg, 0.8, 1.0);
-        SPGL::Line<false>(offset + SPGL::Vector2i(getCircle(rad)), offset + SPGL::Vector2i(getCircle(rad2)), wcolor)(image);
-        SPGL::Line<false>(offset + SPGL::Vector2i(getCircle(rad)), offset + SPGL::Vector2i(getCircle(radNext)), color)(image);
-    }
+        SPGL::Color wcolor = SPGL::Color::HSV(4.0 * deg, 0.8, 1.0);
 
+        SPGL::Vector2d top(0, 0);
+        SPGL::Vector2d bottom(WIDTH * (SCALE - 2.0) / SCALE, HEIGHT * (SCALE - 2.0) / SCALE);
+
+        SPGL::Line<true> (getCircle(top,    rad), getCircle(top,    rad2),    wcolor)(image); 
+        SPGL::Line<true> (getCircle(top,    rad), getCircle(top,    radNext), color) (image);
+        SPGL::Line<false>(getCircle(bottom, rad), getCircle(bottom, rad2),    wcolor)(image);
+        SPGL::Line<false>(getCircle(bottom, rad), getCircle(bottom, radNext), color) (image);
+    }
     std::cerr << "Opening Image File! [" OUTPUT_FILE_NAME "]\n";
 
     std::ofstream file;

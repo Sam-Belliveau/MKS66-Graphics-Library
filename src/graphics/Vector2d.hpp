@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Copyright (c) 2022 Sam Belliveau
  * 
@@ -11,9 +13,6 @@
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  */
-
-#ifndef SPGL_VECTOR2D_HPP
-#define SPGL_VECTOR2D_HPP 1
 
 #include "TypeNames.hpp"
 
@@ -123,5 +122,3 @@ namespace SPGL // Operator Overloads
     bool operator<=(const Vector2D<T> a, const Vector2D<T> b)
     { return !(a > b); }
 }
-
-#endif // SPGL_VECTOR2D_HPP
