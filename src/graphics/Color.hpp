@@ -14,7 +14,8 @@
  * copies or substantial portions of the Software.
  */
 
-#include <algorithm> // std::max
+#include <algorithm>
+#include <limits>
 
 #include "TypeNames.hpp"
 #include "Math.hpp"
@@ -24,7 +25,7 @@ namespace SPGL // Definitions
     struct Color
     {
     public: /* Type Definition */
-        using RepT = Float32;
+        using RepT = Float64;
 
     public: /* Bytes Class */
         struct Bytes
@@ -41,7 +42,7 @@ namespace SPGL // Definitions
             constexpr Bytes(const UInt8 ir, const UInt8 ig, const UInt8 ib)
                 : r{ir}, g{ig}, b{ib} {}
 
-            constexpr Bytes(const Color in)
+            constexpr Bytes(const Color& in)
                 : r{Math::floatToByte(in.r)}
                 , g{Math::floatToByte(in.g)}
                 , b{Math::floatToByte(in.b)} {}
@@ -51,13 +52,8 @@ namespace SPGL // Definitions
         };
 
     private: /* Helper Functions */
-        constexpr Color& clamp()
-        {
-            if(r < 0.0) r = 0.0;
-            if(g < 0.0) g = 0.0;
-            if(b < 0.0) b = 0.0;
-            return *this;
-        }
+        // Fix color class in any way needed
+        constexpr Color& clamp() { return *this; }
 
     public: /* Functions */
         // Default Constructor
@@ -108,18 +104,44 @@ namespace SPGL // Definitions
 
         // Grayscale Constructor
         constexpr Color(const RepT in) 
-            : r{Math::limit(in)}
-            , g{Math::limit(in)}
-            , b{Math::limit(in)} {}
+            : r{in}, g{in}, b{in} {}
 
     public: /* Conversion to Byte Type */
         constexpr Bytes bytes() const
         { return Bytes(*this); }
 
+    public: /* Match Function */
+        template<class Container>
+        Color match(const Container& colors) const
+        {
+            Color result = Color::Black;
+            Color::RepT min_error = std::numeric_limits<RepT>::max();
+
+            for(const Color& color : colors)
+            {
+                const Color::RepT error = distance(color);
+                if(error < min_error)
+                {
+                    min_error = error;
+                    result = color;
+                }
+            }
+
+            return result;
+        }
+
     public: /* Variables */
         RepT r, g, b; 
 
     public: /* Math Operators */
+        constexpr RepT distance(const Color other) const
+        {
+            RepT dr = r - other.r; dr *= dr;
+            RepT dg = g - other.g; dg *= dg;
+            RepT db = b - other.b; db *= db;
+            return dr + dg + db;
+        }
+
         constexpr static Color average(Color lhs, const Color& rhs, const RepT weight = 0.5)
         { return lhs.average(rhs, weight); }
         
@@ -138,15 +160,13 @@ namespace SPGL // Definitions
             return clamp();
         }
 
-        template<typename T>
-        constexpr Color& operator*=(const T& rhs)
+        constexpr Color& operator*=(const RepT& rhs)
         {
             r *= rhs; g *= rhs; b *= rhs;
             return clamp();
         }
 
-        template<typename T>
-        constexpr Color& operator/=(const T& rhs)
+        constexpr Color& operator/=(const RepT& rhs)
         {
             r /= rhs; g /= rhs; b /= rhs;
             return clamp();

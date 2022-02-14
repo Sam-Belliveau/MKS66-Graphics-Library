@@ -71,7 +71,7 @@ namespace SPGL // Definitions
             , _img_data{std::vector<Color>(x * y, color)}
             , _garbage{} {}
 
-    public: /* Functions */
+    public: /* Accessors */
         /*** Single value indexing ***/
         /***/ value_type& operator[](Size i) /***/ { return _img_data[i]; }
         const value_type& operator[](Size i) const { return _img_data[i]; }
@@ -81,8 +81,8 @@ namespace SPGL // Definitions
         /*** Double value indexing ***/
         /***/ value_type& getPixel(Size x, Size y)
         {
-            if(0 > x || x > width())  return _garbage;
-            if(0 > y || y > height()) return _garbage;
+            if(width()  <= x) return _garbage;
+            if(height() <= y) return _garbage;
             return _img_data[y * width() + x];
         }
 
@@ -119,5 +119,43 @@ namespace SPGL // Definitions
         auto rend() { return std::reverse_iterator(std::begin(_img_data)); }
         auto rend() const { return std::reverse_iterator(std::cbegin(_img_data)); }
         auto crend() const { return std::reverse_iterator(std::cbegin(_img_data)); }
+
+    public: /* Functions */
+        Image dither(const std::function<Color(Color)> rounder) const 
+        {
+            Image result = *this;
+
+            constexpr Color::RepT RATIO_7_48  = 7.0 / 48.0;
+            constexpr Color::RepT RATIO_5_48  = 5.0 / 48.0;
+            constexpr Color::RepT RATIO_3_48  = 3.0 / 48.0;
+            constexpr Color::RepT RATIO_1_48  = 1.0 / 48.0;
+
+            for(Size x = 0; x < width();  ++x)
+            for(Size y = 0; y < height(); ++y)
+            {
+                const Color pixel = result(x, y);
+                const Color round = rounder(pixel);
+
+                const Color error = pixel - round;
+                result(x + 0, y + 0) = round;
+
+                result(x + 0, y + 1) += error * RATIO_7_48;
+                result(x + 0, y + 2) += error * RATIO_5_48;
+                
+                result(x + 1, y - 2) += error * RATIO_3_48;
+                result(x + 1, y - 1) += error * RATIO_5_48;
+                result(x + 1, y + 0) += error * RATIO_7_48;
+                result(x + 1, y + 1) += error * RATIO_5_48;
+                result(x + 1, y + 2) += error * RATIO_3_48;
+                
+                result(x + 2, y - 2) += error * RATIO_1_48;
+                result(x + 2, y - 1) += error * RATIO_3_48;
+                result(x + 2, y + 0) += error * RATIO_5_48;
+                result(x + 2, y + 1) += error * RATIO_3_48;
+                result(x + 2, y + 2) += error * RATIO_1_48;
+            }
+
+            return std::move(result);
+        }
     };
 }

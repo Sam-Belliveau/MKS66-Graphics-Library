@@ -31,7 +31,7 @@ SPGL::Vector2d getCircle(SPGL::Vector2d offset, double rad)
 
 int main()
 {
-    SPGL::Image image(WIDTH, HEIGHT, SPGL::Color::Black);
+    SPGL::Image image(WIDTH, HEIGHT, SPGL::Color(0.0));
 
     for(int x = 0; x < image.width(); ++x)
     {
@@ -40,7 +40,7 @@ int main()
             double hue = y;
             hue += 30 * std::sin(x / 25.0); 
             hue += 30 * std::cos(y / 25.0); 
-            image(x, y) = SPGL::Color::HSV(hue, 0.8, 0.2);
+            image(x, y) = SPGL::Color::HSV(hue, 0.75, 0.25);
         }
     }
 
@@ -50,8 +50,8 @@ int main()
         double rad2 = 2 * rad;
         double radNext = rad - SPGL::Math::PI * LINE_STEP / 180.0;
 
-        SPGL::Color color = SPGL::Color::HSV(2.0 * deg, 0.9, 1.0);
-        SPGL::Color wcolor = SPGL::Color::HSV(4.0 * deg, 0.8, 1.0);
+        SPGL::Color color = SPGL::Color::HSV(2.0 * deg, 1.0, 1.0);
+        SPGL::Color wcolor = SPGL::Color::HSV(4.0 * deg, 1.0, 1.0);
 
         SPGL::Vector2d top(0, 0);
         SPGL::Vector2d bottom(WIDTH * (SCALE - 2.0) / SCALE, HEIGHT * (SCALE - 2.0) / SCALE);
@@ -61,11 +61,29 @@ int main()
         SPGL::Line<false>(getCircle(bottom, rad), getCircle(bottom, rad2),    wcolor)(image);
         SPGL::Line<false>(getCircle(bottom, rad), getCircle(bottom, radNext), color) (image);
     }
+
     std::cerr << "Opening Image File! [" OUTPUT_FILE_NAME "]\n";
 
     std::ofstream file;
     file.open(OUTPUT_FILE_NAME);
     file << image;
+    file.close();
+
+    file.open("dithered_" OUTPUT_FILE_NAME);
+    std::vector<SPGL::Color> colors;
+    colors.push_back(SPGL::Color::White);
+    colors.push_back(SPGL::Color::Black);
+    colors.push_back(SPGL::Color::Red);
+    colors.push_back(SPGL::Color::Green);
+    colors.push_back(SPGL::Color::Blue);
+    colors.push_back(SPGL::Color::Yellow);
+    colors.push_back(SPGL::Color::Cyan);
+    colors.push_back(SPGL::Color::Purple);
+
+    file << image.dither([&](SPGL::Color color){
+        
+        return color.match(colors);
+    });
 
     std::cerr << "Finished Writing!\n";
 
