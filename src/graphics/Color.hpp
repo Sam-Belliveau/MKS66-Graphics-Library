@@ -14,6 +14,7 @@
  * copies or substantial portions of the Software.
  */
 
+#include <initializer_list>
 #include <algorithm>
 #include <limits>
 
@@ -114,7 +115,7 @@ namespace SPGL // Definitions
         template<class Container>
         Color match(const Container& colors) const
         {
-            Color result = Color::Black;
+            Color result = *std::begin(colors);
             Color::RepT min_error = std::numeric_limits<RepT>::max();
 
             for(const Color& color : colors)
@@ -129,6 +130,9 @@ namespace SPGL // Definitions
 
             return result;
         }
+
+        Color match(const std::initializer_list<Color> colors)
+        { return match<std::initializer_list<Color>>(colors); }
 
     public: /* Variables */
         RepT r, g, b; 
@@ -160,13 +164,13 @@ namespace SPGL // Definitions
             return clamp();
         }
 
-        constexpr Color& operator*=(const RepT& rhs)
+        constexpr Color& operator*=(const RepT rhs)
         {
             r *= rhs; g *= rhs; b *= rhs;
             return clamp();
         }
 
-        constexpr Color& operator/=(const RepT& rhs)
+        constexpr Color& operator/=(const RepT rhs)
         {
             r /= rhs; g /= rhs; b /= rhs;
             return clamp();

@@ -51,11 +51,12 @@ namespace SPGL
     using Vector2i = Vector2<Int32>;
     using Vector2u = Vector2<UInt32>;
 
+    using Vector2l = Vector2<long>;
+
     using Vector2s = Vector2<Size>;
 
     using Vector2f = Vector2<Float32>;
-    using Vector2d = Vector2<Float>;
-    using Vector2l = Vector2<Float80>;
+    using Vector2d = Vector2<Float64>;
 }
 
 namespace SPGL // Operator Overloads
