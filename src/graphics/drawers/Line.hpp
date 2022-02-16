@@ -31,13 +31,13 @@ namespace SPGL
     private:
         int _step;
         bool _steep;
-        Vector2i _start;
-        Vector2i _end;
-        Vector2i _dt;
+        Vec2i _start;
+        Vec2i _end;
+        Vec2i _dt;
         Color _color;
 
     public:
-        Line(Vector2i start, Vector2i end, Color color)
+        Line(Vec2i start, Vec2i end, Color color)
         {
             _steep = std::abs(end.x - start.x) < std::abs(end.y - start.y);
 
@@ -51,9 +51,9 @@ namespace SPGL
                 std::swap(_end.x, _end.y);
             }
 
-            Vector2i dt = _end - _start;
+            Vec2i dt = _end - _start;
             _step = dt.y < 0 ? -1 : 1;
-            _dt = Vector2i(dt.x, std::abs(dt.y));
+            _dt = Vec2i(dt.x, std::abs(dt.y));
 
             _color = color;
         }
@@ -89,23 +89,23 @@ namespace SPGL
     private:
         bool _steep;
         
-        Vector2d _dt;
+        Vec2d _dt;
         Float _gradient;
 
-        Vector2d _start;
-        Vector2d _start_end;
-        Vector2i _start_pixel;
+        Vec2d _start;
+        Vec2d _start_end;
+        Vec2i _start_pixel;
         Float _start_xgap;
 
-        Vector2d _end;
-        Vector2d _end_end;
-        Vector2i _end_pixel;
+        Vec2d _end;
+        Vec2d _end_end;
+        Vec2i _end_pixel;
         Float _end_xgap;
 
         Color _color;
 
     public:
-        constexpr Line(Vector2d start, Vector2d end, Color color)
+        constexpr Line(Vec2d start, Vec2d end, Color color)
             : _steep{}, _dt{}, _gradient{}
             , _start{}, _start_end{}, _start_pixel{}, _start_xgap{}
             , _end{}, _end_end{}, _end_pixel{}, _end_xgap{}
@@ -127,14 +127,14 @@ namespace SPGL
             _gradient = (_dt.x == 0) ? 1.0 : (_dt.y / _dt.x);
 
             const Float xend1 = std::round(_start.x);
-            _start_end = Vector2d(xend1, _start.y + _gradient * (xend1 - _start.x));
+            _start_end = Vec2d(xend1, _start.y + _gradient * (xend1 - _start.x));
             _start_xgap = Math::rfpart(_start.x + 0.5);
-            _start_pixel = Vector2i(std::lround(_start_end.x), Int32(_start_end.y));
+            _start_pixel = Vec2i(std::lround(_start_end.x), Int32(_start_end.y));
 
             const Float xend2 = std::round(_end.x);
-            _end_end = Vector2d(xend2, _end.y + _gradient * (xend2 - _end.x));
+            _end_end = Vec2d(xend2, _end.y + _gradient * (xend2 - _end.x));
             _end_xgap = Math::rfpart(_end.x + 0.5);
-            _end_pixel = Vector2i(std::lround(_end_end.x), Int32(_end_end.y));
+            _end_pixel = Vec2i(std::lround(_end_end.x), Int32(_end_end.y));
 
             _color = color;
         }

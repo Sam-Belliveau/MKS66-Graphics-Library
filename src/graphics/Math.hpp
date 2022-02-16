@@ -31,7 +31,7 @@ namespace SPGL
         }
 
         template<class FT>
-        inline constexpr UInt8 floatToByte(FT channel) 
+        inline constexpr UInt8 float_to_byte(FT channel) 
         {
             if(channel <= FT(0.0)) return 0;
             if(FT(1.0) <= channel) return 255;
@@ -39,7 +39,7 @@ namespace SPGL
         }
 
         template<class FT>
-        inline constexpr FT byteToFloat(UInt8 channel) 
+        inline constexpr FT byte_to_float(UInt8 channel) 
         { return channel / FT(255.0); }
 
         template<class FT>

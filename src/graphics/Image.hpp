@@ -46,7 +46,7 @@ namespace SPGL // Definitions
         using const_reverse_iterator = std::vector<value_type>::const_reverse_iterator;
 
     public: /* Information */
-        Vector2s vecsize() const { return _img_size; }
+        Vec2s vecsize() const { return _img_size; }
         Size height() const { return _img_size.y; }
         Size width()  const { return _img_size.x; }
         bool empty()  const { return (_img_size.x | _img_size.y) == 0; }
@@ -79,28 +79,34 @@ namespace SPGL // Definitions
         const value_type& operator()(Size i) const { return _img_data[i]; }
 
         /*** Double value indexing ***/
-        /***/ value_type& getPixel(long x, long y)
+        /***/ value_type& get(Size x, Size y)
         {
-            if(x < 0 || width()  <= x) return _garbage;
-            if(x < 0 || height() <= y) return _garbage;
+            if(width()  <= x) { return _garbage; }
+            if(height() <= y) { return _garbage; }
             return _img_data[y * width() + x];
         }
 
-        const value_type& getPixel(long x, long y) const { return getPixel(x, y); }
-        /***/ value_type& getPixel(Vector2l i)     /***/ { return getPixel(i.x, i.y); }
-        const value_type& getPixel(Vector2l i)     const { return getPixel(i.x, i.y); }
+        const value_type& get(Size x, Size y) const 
+        {
+            if(width()  <= x) { return _garbage; }
+            if(height() <= y) { return _garbage; }
+            return _img_data[y * width() + x];
+        }
         
-        /***/ value_type& operator()(long x, long y) /***/ { return getPixel(x, y); }
-        const value_type& operator()(long x, long y) const { return getPixel(x, y); }
+        /***/ value_type& get(Vec2s i)     /***/ { return get(i.x, i.y); }
+        const value_type& get(Vec2s i)     const { return get(i.x, i.y); }
+        
+        /***/ value_type& operator()(Size x, Size y) /***/ { return get(x, y); }
+        const value_type& operator()(Size x, Size y) const { return get(x, y); }
 
-        /***/ value_type& operator[](Vector2l i) /***/ { return getPixel(i.x, i.y); }
-        const value_type& operator[](Vector2l i) const { return getPixel(i.x, i.y); }
-        /***/ value_type& operator()(Vector2l i) /***/ { return getPixel(i.x, i.y); }
-        const value_type& operator()(Vector2l i) const { return getPixel(i.x, i.y); }
+        /***/ value_type& operator[](Vec2s i) /***/ { return get(i.x, i.y); }
+        const value_type& operator[](Vec2s i) const { return get(i.x, i.y); }
+        /***/ value_type& operator()(Vec2s i) /***/ { return get(i.x, i.y); }
+        const value_type& operator()(Vec2s i) const { return get(i.x, i.y); }
 
     private: /* Raw Data */
         std::vector<value_type> _img_data;
-        Vector2s _img_size;
+        Vec2s _img_size;
         Color _garbage;
 
     public: /* Iterators */
@@ -120,42 +126,64 @@ namespace SPGL // Definitions
         auto rend() const { return std::reverse_iterator(std::cbegin(_img_data)); }
         auto crend() const { return std::reverse_iterator(std::cbegin(_img_data)); }
 
-    public: /* Functions */
-        Image dither(const std::function<Color(Color)> rounder, const Color::RepT bleed_reduction = 1.0) const 
-        {
-            Image result = Image(*this);
-
-            constexpr Color::RepT RATIO_7_48  = 7.0 / 48.0;
-            constexpr Color::RepT RATIO_5_48  = 5.0 / 48.0;
-            constexpr Color::RepT RATIO_3_48  = 3.0 / 48.0;
-            constexpr Color::RepT RATIO_1_48  = 1.0 / 48.0;
-
-            for(long x = 0; x < width();  ++x)
-            for(long y = 0; y < height(); ++y)
-            {
-                const Color pixel = result(x, y);
-                const Color round = rounder(pixel);
-
-                result(x + 0, y + 0) = round;
-
-                const Color error = (pixel - round) * bleed_reduction;
-                result(x + 0, y + 1) += error * RATIO_7_48;
-                result(x + 0, y + 2) += error * RATIO_5_48;
-                
-                result(x + 1, y - 2) += error * RATIO_3_48;
-                result(x + 1, y - 1) += error * RATIO_5_48;
-                result(x + 1, y + 0) += error * RATIO_7_48;
-                result(x + 1, y + 1) += error * RATIO_5_48;
-                result(x + 1, y + 2) += error * RATIO_3_48;
-                
-                result(x + 2, y - 2) += error * RATIO_1_48;
-                result(x + 2, y - 1) += error * RATIO_3_48;
-                result(x + 2, y + 0) += error * RATIO_5_48;
-                result(x + 2, y + 1) += error * RATIO_3_48;
-                result(x + 2, y + 2) += error * RATIO_1_48;
-            }
-
-            return std::move(result);
-        }
+    public: /* Modifications  */
+        Image dither(const std::function<Color(Color)>) const;
+        Image resize_nearest(const Size x, const Size y) const;
     };
+}
+
+namespace SPGL
+{
+    Image Image::dither(const std::function<Color(Color)> rounder) const 
+    {
+        Image result = Image(*this);
+
+        constexpr Color::RepT RATIO_7_48  = 7.0 / 48.0;
+        constexpr Color::RepT RATIO_5_48  = 5.0 / 48.0;
+        constexpr Color::RepT RATIO_3_48  = 3.0 / 48.0;
+        constexpr Color::RepT RATIO_1_48  = 1.0 / 48.0;
+
+        for(long x = 0; x < width();  ++x)
+        for(long y = 0; y < height(); ++y)
+        {
+            const Color pixel = result(x, y);
+            const Color round = rounder(pixel);
+
+            result(x + 0, y + 0) = round;
+
+            const Color error = (pixel - round);
+            result(x + 0, y + 1) += error * RATIO_7_48;
+            result(x + 0, y + 2) += error * RATIO_5_48;
+            
+            result(x + 1, y - 2) += error * RATIO_3_48;
+            result(x + 1, y - 1) += error * RATIO_5_48;
+            result(x + 1, y + 0) += error * RATIO_7_48;
+            result(x + 1, y + 1) += error * RATIO_5_48;
+            result(x + 1, y + 2) += error * RATIO_3_48;
+            
+            result(x + 2, y - 2) += error * RATIO_1_48;
+            result(x + 2, y - 1) += error * RATIO_3_48;
+            result(x + 2, y + 0) += error * RATIO_5_48;
+            result(x + 2, y + 1) += error * RATIO_3_48;
+            result(x + 2, y + 2) += error * RATIO_1_48;
+        }
+
+        return std::move(result);
+    }
+
+    Image Image::resize_nearest(const Size x, const Size y) const
+    {
+        Image result(x, y);
+
+        for(Size ix = 0; ix < x; ++ix)
+        for(Size iy = 0; iy < y; ++iy)
+        {
+            const Size sx = (ix * width()) / x;
+            const Size sy = (iy * height()) / y;
+
+            result(ix, iy) = get(sx, sy);
+        }
+
+        return result;
+    }
 }

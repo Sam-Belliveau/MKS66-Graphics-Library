@@ -44,9 +44,9 @@ namespace SPGL // Definitions
                 : r{ir}, g{ig}, b{ib} {}
 
             constexpr Bytes(const Color& in)
-                : r{Math::floatToByte(in.r)}
-                , g{Math::floatToByte(in.g)}
-                , b{Math::floatToByte(in.b)} {}
+                : r{Math::float_to_byte(in.r)}
+                , g{Math::float_to_byte(in.g)}
+                , b{Math::float_to_byte(in.b)} {}
 
         public: // Variables
             UInt8 r, g, b;
@@ -71,8 +71,14 @@ namespace SPGL // Definitions
                         , b{Math::limit(ib)} { }
 
         // HSV Constructor
-        constexpr static Color HSV(const RepT h, const RepT s = RepT(1.0), const RepT v = RepT(1.0))
+        constexpr static Color HSV(const RepT h, RepT s = RepT(1.0), RepT v = RepT(1.0))
         {
+            if (s <= RepT(0.0)) s = RepT(0.0);
+            if (s >= RepT(1.0)) s = RepT(1.0);
+
+            if (v <= RepT(0.0)) v = RepT(0.0);
+            if (v >= RepT(1.0)) v = RepT(1.0);
+
             if (RepT(0.0) <= s)
             {
                 constexpr RepT SCALE = RepT(1.0) / RepT(60.0);
@@ -99,19 +105,49 @@ namespace SPGL // Definitions
 
         // Bytes Constructor
         constexpr Color(const Bytes in) 
-            : r{Math::byteToFloat<RepT>(in.r)}
-            , g{Math::byteToFloat<RepT>(in.g)}
-            , b{Math::byteToFloat<RepT>(in.b)} {}
+            : r{Math::byte_to_float<RepT>(in.r)}
+            , g{Math::byte_to_float<RepT>(in.g)}
+            , b{Math::byte_to_float<RepT>(in.b)} {}
 
         // Grayscale Constructor
         constexpr Color(const RepT in) 
             : r{in}, g{in}, b{in} {}
 
+    public: /* Variables */
+        RepT r, g, b; 
+
     public: /* Conversion to Byte Type */
         constexpr Bytes bytes() const
         { return Bytes(*this); }
 
+    public: /* Math Operators */
+        constexpr static Color average(Color lhs, const Color& rhs, const RepT weight = 0.5)
+        { return lhs.average(rhs, weight); }
+        
+        constexpr Color& average(Color rhs, const RepT weight = 0.5)
+        { return operator*=(RepT(1.0) - weight).operator+=(rhs *= weight); }
+
+        constexpr Color& operator+=(const Color& rhs)
+        { r += rhs.r; g += rhs.g; b += rhs.b; return clamp(); }
+
+        constexpr Color& operator-=(const Color& rhs)
+        { r -= rhs.r; g -= rhs.g; b -= rhs.b; return clamp(); }
+
+        constexpr Color& operator*=(const RepT rhs)
+        { r *= rhs; g *= rhs; b *= rhs; return clamp(); }
+
+        constexpr Color& operator/=(const RepT rhs)
+        { r /= rhs; g /= rhs; b /= rhs; return clamp(); }
+
     public: /* Match Function */
+        constexpr RepT distance(const Color other) const
+        {
+            const RepT dr = r - other.r;
+            const RepT dg = g - other.g;
+            const RepT db = b - other.b;
+            return dr * dr + dg * dg + db * db;
+        }
+
         template<class Container>
         Color match(const Container& colors) const
         {
@@ -133,48 +169,6 @@ namespace SPGL // Definitions
 
         Color match(const std::initializer_list<Color> colors)
         { return match<std::initializer_list<Color>>(colors); }
-
-    public: /* Variables */
-        RepT r, g, b; 
-
-    public: /* Math Operators */
-        constexpr RepT distance(const Color other) const
-        {
-            RepT dr = r - other.r; dr *= dr;
-            RepT dg = g - other.g; dg *= dg;
-            RepT db = b - other.b; db *= db;
-            return dr + dg + db;
-        }
-
-        constexpr static Color average(Color lhs, const Color& rhs, const RepT weight = 0.5)
-        { return lhs.average(rhs, weight); }
-        
-        constexpr Color& average(Color rhs, const RepT weight = 0.5)
-        { return operator*=(RepT(1.0) - weight).operator+=(rhs *= weight); }
-
-        constexpr Color& operator+=(const Color& rhs)
-        {
-            r += rhs.r; g += rhs.g; b += rhs.b;
-            return clamp();
-        }
-
-        constexpr Color& operator-=(const Color& rhs)
-        {
-            r -= rhs.r; g -= rhs.g; b -= rhs.b;
-            return clamp();
-        }
-
-        constexpr Color& operator*=(const RepT rhs)
-        {
-            r *= rhs; g *= rhs; b *= rhs;
-            return clamp();
-        }
-
-        constexpr Color& operator/=(const RepT rhs)
-        {
-            r /= rhs; g /= rhs; b /= rhs;
-            return clamp();
-        }
 
     public: /* Static Colors */
         static const Color Black, White;

@@ -18,108 +18,107 @@
 
 namespace SPGL
 {
-    template<class T = Int32>
-    struct Vector2
+    template<class T>
+    struct Vec2
     {
     public: /* Methods */
         // Default Constructor
-        constexpr Vector2() : x{0}, y{0} {}
+        constexpr Vec2() : x{0}, y{0} {}
 
         // Copy Constructors
-        constexpr Vector2(const Vector2 &in) = default;
-        constexpr Vector2& operator=(const Vector2 &in) = default;
+        constexpr Vec2(const Vec2 &in) = default;
+        constexpr Vec2& operator=(const Vec2 &in) = default;
 
         // Custom Constructors
         template<class iT>
-        constexpr Vector2(const Vector2<iT> &in)
-            : x{static_cast<T>(in.x)}, y{static_cast<T>(in.y)} {}
+        constexpr Vec2(const Vec2<iT> &in)
+            : x{static_cast<T>(in.x)}
+            , y{static_cast<T>(in.y)} {}
 
         template<class iT>
-        constexpr Vector2& operator=(const Vector2<iT> &in)
+        constexpr Vec2& operator=(const Vec2<iT> &in)
         {
             x = static_cast<T>(in.x);
             y = static_cast<T>(in.y);
             return *this;
         }
 
-        constexpr Vector2(const T ix, const T iy) : x{ix}, y{iy} {}
+        constexpr Vec2(const T ix, const T iy) : x{ix}, y{iy} {}
 
     public: /* Variables */
         T x, y;
     };
 
-    using Vector2i = Vector2<Int32>;
-    using Vector2u = Vector2<UInt32>;
+    using Vec2i = Vec2<Int32>;
+    using Vec2u = Vec2<UInt32>;
 
-    using Vector2l = Vector2<long>;
+    using Vec2s = Vec2<Size>;
 
-    using Vector2s = Vector2<Size>;
-
-    using Vector2f = Vector2<Float32>;
-    using Vector2d = Vector2<Float64>;
+    using Vec2f = Vec2<Float32>;
+    using Vec2d = Vec2<Float64>;
 }
 
 namespace SPGL // Operator Overloads
 {
     // ADD //
     template<class T>
-    Vector2<T>& operator+=(Vector2<T>& a, const Vector2<T> b)
+    Vec2<T>& operator+=(Vec2<T>& a, const Vec2<T> b)
     { a.x += b.x; a.y += b.y; return a; }
 
     template<class T>
-    Vector2<T>  operator+ (Vector2<T> a, const Vector2<T> b)
+    Vec2<T>  operator+ (Vec2<T> a, const Vec2<T> b)
     { a += b; return a; }
 
     // SUB //
     template<class T>
-    Vector2<T>& operator-=(Vector2<T>& a, const Vector2<T> b)
+    Vec2<T>& operator-=(Vec2<T>& a, const Vec2<T> b)
     { a.x -= b.x; a.y -= b.y; return a; }
 
     template<class T>
-    Vector2<T>  operator- (Vector2<T> a, const Vector2<T> b)
+    Vec2<T>  operator- (Vec2<T> a, const Vec2<T> b)
     { a -= b; return a; }
 
     // MUL //
     template<class T>
-    Vector2<T>& operator*=(Vector2<T>& a, const Vector2<T> b)
+    Vec2<T>& operator*=(Vec2<T>& a, const Vec2<T> b)
     { a.x *= b.x; a.y *= b.y; return a; }
 
     template<class T>
-    Vector2<T>  operator* (Vector2<T> a, const Vector2<T> b)
+    Vec2<T>  operator* (Vec2<T> a, const Vec2<T> b)
     { a *= b; return a; }
 
     // DIV //
     template<class T>
-    Vector2<T>& operator/=(Vector2<T>& a, const Vector2<T> b)
+    Vec2<T>& operator/=(Vec2<T>& a, const Vec2<T> b)
     { a.x /= b.x; a.y /= b.y; return a; }
 
     template<class T>
-    Vector2<T>  operator/ (Vector2<T> a, const Vector2<T> b)
+    Vec2<T>  operator/ (Vec2<T> a, const Vec2<T> b)
     { a /= b; return a; }
 
     // EQUAL //
     template<class T>
-    bool operator==(const Vector2<T> a, const Vector2<T> b)
+    bool operator==(const Vec2<T> a, const Vec2<T> b)
     { return a.x == b.x && a.y == b.y; }
 
     template<class T>
-    bool operator!=(const Vector2<T> a, const Vector2<T> b)
+    bool operator!=(const Vec2<T> a, const Vec2<T> b)
     { return !(a == b); }
 
     // COMPARE //
     template<class T>
-    bool operator< (const Vector2<T> a, const Vector2<T> b)
+    bool operator< (const Vec2<T> a, const Vec2<T> b)
     { return (a.x*a.x + a.y*a.y) < (b.x*b.x + b.y*b.y); }
 
     template<class T>
-    bool operator>=(const Vector2<T> a, const Vector2<T> b)
+    bool operator>=(const Vec2<T> a, const Vec2<T> b)
     { return !(a < b); }
 
     template<class T>
-    bool operator> (const Vector2<T> a, const Vector2<T> b)
+    bool operator> (const Vec2<T> a, const Vec2<T> b)
     { return b < a; }
 
     template<class T>
-    bool operator<=(const Vector2<T> a, const Vector2<T> b)
+    bool operator<=(const Vec2<T> a, const Vec2<T> b)
     { return !(a > b); }
 }
