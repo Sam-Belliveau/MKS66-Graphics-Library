@@ -37,8 +37,6 @@ namespace SPGL
         constexpr Vec4(const Vec4 &in) = default;
         constexpr Vec4& operator=(const Vec4 &in) = default;
 
-        constexpr Vec4(const Vec3<T> &in) 
-            : x(in.x), y(in.y), z(in.z), w(T(1.0)) {}
 
         // Custom Constructors
         template<class iT>
@@ -48,9 +46,13 @@ namespace SPGL
             , z{static_cast<T>(in.z)}
             , w{static_cast<T>(in.w)} {}
 
+        // Casting 
+        constexpr Vec4(const Vec3<T> &in) 
+            : x(in.x), y(in.y), z(in.z), w(T(1.0)) {}
+
         constexpr operator Vec3<T>() const
         { return Vec3<T>(x, y, z) / w; }
-        
+
     public: // Functions
         constexpr T mag() const 
         { return std::sqrt(x*x + y*y + z*z + w*w); }
