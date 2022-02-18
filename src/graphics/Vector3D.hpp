@@ -17,6 +17,8 @@
 #include <cmath>
 #include <array>
 
+#include "TypeNames.hpp"
+
 namespace SPGL 
 {
     template<typename T>
@@ -27,7 +29,8 @@ namespace SPGL
 
     public: // Constructors
         constexpr Vec3() : x(0), y(0), z(0) {}
-        constexpr Vec3(T x, T y, T z) : x(x), y(y), z(z) {} 
+        constexpr Vec3(const T x, const T y, const T z) : x(x), y(y), z(z) {} 
+        constexpr Vec3(const std::array<T, 3>& arr) : x(arr[0]), y(arr[1]), z(arr[2]) {} 
 
         // Copy Constructors
         constexpr Vec3(const Vec3 &in) = default;
@@ -35,14 +38,10 @@ namespace SPGL
 
         // Custom Constructors
         template<class iT>
-        constexpr Vec2(const Vec3<iT> &in)
+        constexpr Vec3(const Vec3<iT> &in)
             : x{static_cast<T>(in.x)}
             , y{static_cast<T>(in.y)}
             , z{static_cast<T>(in.z)} {}
-
-        // Casting
-        constexpr operator std::array<T, 3>() const 
-        { return std::array<T, 3>({x, y, z}); }
 
     public: // Functions
         constexpr T mag() const 
@@ -58,7 +57,6 @@ namespace SPGL
         { return Vec3(std::abs(x), std::abs(y), std::abs(z)); }
 
     public: // Operators
-
         constexpr Vec3& operator+=(const Vec3& rhs) { x += rhs.x; y += rhs.y; z += rhs.z; return *this; }
         constexpr Vec3& operator-=(const Vec3& rhs) { x -= rhs.x; y -= rhs.y; z -= rhs.z; return *this; }
         constexpr Vec3& operator*=(const Vec3& rhs) { x *= rhs.x; y *= rhs.y; z *= rhs.z; return *this; }
@@ -74,6 +72,10 @@ namespace SPGL
         constexpr friend Vec3 operator*(Vec3 lhs, const T rhs) { return lhs *= rhs; }
         constexpr friend Vec3 operator*(const T lhs, Vec3 rhs) { return rhs *= lhs; }
         constexpr friend Vec3 operator/(Vec3 lhs, const T rhs) { return lhs /= rhs; }
+
+    public: // Print Support
+        friend std::ostream& operator<<(std::ostream& file, const Vec3& vec)
+        { return file << "[ " << vec.x << '\t' << vec.y << '\t' << vec.z << " ]"; }
     };
 
     using Vec3i = Vec3<Int32>;

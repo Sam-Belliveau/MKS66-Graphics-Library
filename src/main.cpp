@@ -11,6 +11,7 @@
 #include "graphics/MathConstants.hpp"
 #include "graphics/Image.hpp"
 #include "graphics/PPMSupport.hpp"
+#include "graphics/Matrix4D.hpp"
 
 #define OUTPUT_FILE_NAME "output_image.ppm"
 
@@ -30,7 +31,28 @@ SPGL::Vec2d getCircle(SPGL::Vec2d offset, double rad)
 }
 
 int main()
-{
+{ 
+    SPGL::Mat4d test_a = SPGL::Mat4d::Identity();
+    test_a[2][3] = 800; 
+    SPGL::Mat4d test_b(
+        {1, 4, 7, 10},
+        {2, 5, 8, 11},
+        {3, 6, 9, 12},
+        {1, 1, 1, 1}
+    );
+    
+    SPGL::EdgeList<double> list;
+    list.push_back(SPGL::Vec3d(1, 2, 3));
+    list.push_back(SPGL::Vec3d(4, 5, 6));
+
+    std::cout << list << std::endl;
+    std::cout << test_b << std::endl;
+
+
+    std::cout << test_b * list << std::endl;
+    
+    return 0;
+
     SPGL::Image image(WIDTH, HEIGHT, SPGL::Color(0.0));
 
     for(int x = 0; x < image.width(); ++x)
