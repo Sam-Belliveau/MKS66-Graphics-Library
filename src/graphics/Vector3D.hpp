@@ -43,6 +43,9 @@ namespace SPGL
             , y{static_cast<T>(in.y)}
             , z{static_cast<T>(in.z)} {}
 
+        constexpr operator Vec2<T>() const
+        { return Vec2<T>(x, y) / z; }
+
     public: // Functions
         constexpr T mag() const 
         { return std::sqrt(x*x + y*y + z*z); }

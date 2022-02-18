@@ -33,7 +33,6 @@ SPGL::Vec2d getCircle(SPGL::Vec2d offset, double rad)
 int main()
 { 
     SPGL::Mat4d test_a = SPGL::Mat4d::Identity();
-    test_a[2][3] = 800; 
     SPGL::Mat4d test_b(
         {1, 4, 7, 10},
         {2, 5, 8, 11},
@@ -45,10 +44,14 @@ int main()
     list.push_back(SPGL::Vec3d(1, 2, 3));
     list.push_back(SPGL::Vec3d(4, 5, 6));
 
+    std::cout << "Identity Matrix:\n";
+    std::cout << list << std::endl;
+    std::cout << test_a << std::endl;
+    std::cout << test_a * list << std::endl;
+
+    std::cout << "Wacky Matrix:\n";
     std::cout << list << std::endl;
     std::cout << test_b << std::endl;
-
-
     std::cout << test_b * list << std::endl;
     
     return 0;

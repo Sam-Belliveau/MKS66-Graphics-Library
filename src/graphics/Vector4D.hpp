@@ -48,9 +48,21 @@ namespace SPGL
             , z{static_cast<T>(in.z)}
             , w{static_cast<T>(in.w)} {}
 
-    public: // Functions
-        constexpr Vec3<T> getPosition() const
+        constexpr operator Vec3<T>() const
         { return Vec3<T>(x, y, z) / w; }
+        
+    public: // Functions
+        constexpr T mag() const 
+        { return std::sqrt(x*x + y*y + z*z + w*w); }
+
+        constexpr T dot(const Vec4& rhs) const 
+        { return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w; }
+
+        constexpr Vec4 normalized() const 
+        { return *this / mag(); }
+
+        constexpr Vec4 abs() const 
+        { return Vec4(std::abs(x), std::abs(y), std::abs(z), std::abs(w)); }
 
         T& operator[](Size i)
         {
