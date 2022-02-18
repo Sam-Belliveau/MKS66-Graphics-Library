@@ -109,10 +109,10 @@ namespace SPGL
     {
         for(Size i = 0; i < 4; ++i)
         {
-            file << "[";
+            file << "| ";
             for(const Vec4<T>& edge : list)
-            { file << '\t' << edge[i]; }
-            file << "\t]\n";
+            { file << edge[i] << "\t| "; }
+            file << '\n';
         }
 
         return file;
