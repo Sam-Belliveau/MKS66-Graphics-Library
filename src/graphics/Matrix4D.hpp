@@ -42,7 +42,49 @@ namespace SPGL
             );
         }
 
+        constexpr static Mat4 Translation(SPGL::Vec3<T> tl) 
+        {
+            return Mat4(
+                {T(1),T(0),T(0),tl.x},
+                {T(0),T(1),T(0),tl.y},
+                {T(0),T(0),T(1),tl.z},
+                {T(0),T(0),T(0),T(1)}
+            );
+        }
+
+        constexpr static Mat4 Scale(T size) 
+        {
+            return Mat4(
+                {size,T(0),T(0),T(0)},
+                {T(0),size,T(0),T(0)},
+                {T(0),T(0),size,T(0)},
+                {T(0),T(0),T(0),T(1)}
+            );
+        }
+        
+        constexpr static Mat4 Scale(SPGL::Vec3<T> sv) 
+        {
+            return Mat4(
+                {sv.x,T(0),T(0),T(0)},
+                {T(0),sv.y,T(0),T(0)},
+                {T(0),T(0),sv.z,T(0)},
+                {T(0),T(0),T(0),T(1)}
+            );
+        }
+
         constexpr static Mat4 Pitch(const T& t) 
+        {
+            const T S = std::sin(t);
+            const T C = std::cos(t);
+            return Mat4{
+                { +1, +0, +0, +0 },
+                { +0, +C, -S, +0 },
+                { +0, +S, +C, +0 },
+                { +0, +0, +0, +1 }
+            };
+        }
+
+        constexpr static Mat4 Yaw(const T& t) 
         {
             const T S = std::sin(t);
             const T C = std::cos(t);
@@ -54,7 +96,7 @@ namespace SPGL
             };
         }
 
-        constexpr static Mat4 Yaw(const T& t) 
+        constexpr static Mat4 Roll(const T& t) 
         {
             const T S = std::sin(t);
             const T C = std::cos(t);
@@ -62,18 +104,6 @@ namespace SPGL
                 { +C, -S, +0, +0 },
                 { +S, +C, +0, +0 },
                 { +0, +0, +1, +0 },
-                { +0, +0, +0, +1 }
-            };
-        }
-
-        constexpr static Mat4 Roll(const T& t) 
-        {
-            const T S = std::sin(t);
-            const T C = std::cos(t);
-            return Mat4{
-                { +1, +0, +0, +0 },
-                { +0, +C, -S, +0 },
-                { +0, +S, +C, +0 },
                 { +0, +0, +0, +1 }
             };
         }
@@ -134,32 +164,19 @@ namespace SPGL
             return *this;
         }
 
-        constexpr friend Mat4 operator*(const Mat4& lhs, const Mat4& rhs) 
+        constexpr friend Mat4 operator*(const Mat4& l, const Mat4& r) 
         {
-            Rows data = {};
+            Rows data;
 
             for(Size y = 0; y < height(); ++y)
             for(Size x = 0; x < width(); ++x)
-            {
-                data[y][x] = 0;
-
-                for(Size i = 0; i < 4; ++i)
-                    data[y][x] += lhs[y][i] * rhs[i][x];
-            }
+            { data[y][x] = l[y].dot({r[0][x], r[1][x], r[2][x], r[3][x]}); }
 
             return Mat4(data);
         }
 
-        constexpr friend Column operator*(const Mat4& lhs, const Vec4<T>& rhs) 
-        {
-            return 
-            {
-                rhs.dot(lhs[0]),
-                rhs.dot(lhs[1]),
-                rhs.dot(lhs[2]),
-                rhs.dot(lhs[3]),
-            };
-        }
+        constexpr friend Column operator*(const Mat4& l, const Vec4<T>& r) 
+        { return { r.dot(l[0]), r.dot(l[1]), r.dot(l[2]), r.dot(l[3]) }; }
 
         friend EdgeList<T> operator*(const Mat4& lhs, const EdgeList<T>& rhs) 
         {
@@ -170,9 +187,7 @@ namespace SPGL
 
     public: // Print Support
         friend std::ostream& operator<<(std::ostream& file, const Mat4& mat)
-        {
-            return file << "\n" << mat[0] << "\n" << mat[1] << "\n" << mat[2] << "\n" << mat[3] << "\n";
-        }
+        { return file << "\n" << mat[0] << "\n" << mat[1] << "\n" << mat[2] << "\n" << mat[3] << "\n"; }
     };
 
     using Mat4i = Mat4<Int32>;

@@ -15,19 +15,14 @@
 
 #define OUTPUT_FILE_NAME "output_image.ppm"
 
-constexpr SPGL::Size WIDTH = 240;
-constexpr SPGL::Size HEIGHT = 180;
-constexpr double COUNT = 256;
-constexpr double LINE_STEP = 360.0 / COUNT;
-constexpr double SCALE = 3.5;
-constexpr double CIRCLE_PART = 0.975;
-
-SPGL::Vec2d getCircle(SPGL::Vec2d offset, double rad)
-{
-    return offset + SPGL::Vec2d(
-        (WIDTH / SCALE) + CIRCLE_PART * (WIDTH / SCALE) * std::cos(rad), 
-        (WIDTH / SCALE) + CIRCLE_PART * (WIDTH / SCALE) * std::sin(rad)
-    );
+void line(SPGL::Image& img, SPGL::Vec2d start, SPGL::Vec2d end, SPGL::Color color) {
+    start = -start;
+    end = -end;
+    start += {1, 1};
+    start *= img.width() / 2;
+    end += {1, 1};
+    end *= img.width() / 2;
+    SPGL::Line<true>(start, end, color)(img);
 }
 
 int main()
@@ -53,6 +48,34 @@ int main()
     std::cout << list << std::endl;
     std::cout << test_b << std::endl;
     std::cout << test_b * list << std::endl;
-    
+
+    SPGL::Image out(500, 500);
+
+    SPGL::EdgeList<double> a;
+
+    for(double x = -1; x <= 1; x += 2)
+    for(double y = -1; y <= 1; y += 2)
+    for(double z = -1; z <= 1; z += 2)
+        a.push_back({x, y, z});
+
+    SPGL::Mat4d ta = SPGL::Mat4d::Pitch(-0.2);
+    SPGL::Mat4d tb = SPGL::Mat4d::Yaw(0.5);
+    SPGL::Mat4d tc = SPGL::Mat4d::Roll(1.5);
+    SPGL::Mat4d b = SPGL::Mat4d::Translation({0, 0, 3});
+
+    SPGL::EdgeList<double> at = b * tc * tb * ta * a;
+
+    for(int ka = 0; ka < at.size(); ++ka)
+    for(int kb = ka+1; kb < at.size(); ++kb) {
+        line(out, SPGL::Vec3d(at[ka]), SPGL::Vec3d(at[kb]), SPGL::Color::HSV(60 * ka + 30 * kb, 0.5, ((1.0/at[ka].z)+(1.0/at[kb].z))));
+    }
+
+    std::ofstream file;
+    file.open(OUTPUT_FILE_NAME);
+
+    file << out;
+
+    file.close();
+
     return 0;
 }

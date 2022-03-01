@@ -47,7 +47,7 @@ namespace SPGL
         constexpr Vec3(const Vec2<T> &in) 
             : x(in.x), y(in.y), z(1.0) {}
 
-        constexpr operator Vec3<T>() const
+        constexpr operator Vec2<T>() const
         { return Vec2<T>(x, y) / z; }
 
     public: // Functions
