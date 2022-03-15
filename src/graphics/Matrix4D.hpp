@@ -72,7 +72,7 @@ namespace SPGL
             );
         }
 
-        constexpr static Mat4 Pitch(const T& t) 
+        constexpr static Mat4 RotX(const T& t) 
         {
             const T S = std::sin(t);
             const T C = std::cos(t);
@@ -84,7 +84,7 @@ namespace SPGL
             };
         }
 
-        constexpr static Mat4 Yaw(const T& t) 
+        constexpr static Mat4 RotY(const T& t) 
         {
             const T S = std::sin(t);
             const T C = std::cos(t);
@@ -96,7 +96,7 @@ namespace SPGL
             };
         }
 
-        constexpr static Mat4 Roll(const T& t) 
+        constexpr static Mat4 RotZ(const T& t) 
         {
             const T S = std::sin(t);
             const T C = std::cos(t);

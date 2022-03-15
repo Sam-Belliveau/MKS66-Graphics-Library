@@ -18,6 +18,7 @@
 #include <array>
 
 #include "TypeNames.hpp"
+#include "Vector2D.hpp"
 
 namespace SPGL 
 {

@@ -22,8 +22,8 @@ COMPILER=g++ $(FLAGS)
 MKDIR=mkdir
 
 # Display File (relies on png file)
-all: $(OUTPUT_PNG)
-	open $(OUTPUT_PNG)
+all: $(OUTPUT)
+	$(OUTPUT)
 
 # Compile Binary (relies on object files)
 $(OUTPUT): $(OBJS)
@@ -34,14 +34,6 @@ $(OUTPUT): $(OBJS)
 $(OBJ)/%.o: $(SRC)/%.cpp $(DEPS)
 	$(MKDIR) -p $(@D)
 	$(COMPILER) -c $< -o $@
-
-# Create PPM File (relies on binary)
-$(OUTPUT_PPM): $(OUTPUT)
-	$(OUTPUT)
-
-# Create PNG File (relies on ppm file)
-$(OUTPUT_PNG): $(OUTPUT_PPM)
-	convert $(OUTPUT_PPM) $(OUTPUT_PNG)
 
 # Clean Everything
 clean:

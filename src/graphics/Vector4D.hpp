@@ -117,6 +117,8 @@ namespace SPGL
 {
     template<class T>
     using EdgeList = std::vector<Vec4<T>>;
+    using EdgeListf = EdgeList<Float32>;
+    using EdgeListd = EdgeList<Float64>;
 
     template<class T>
     std::ostream& operator<<(std::ostream& file, const EdgeList<T>& list)

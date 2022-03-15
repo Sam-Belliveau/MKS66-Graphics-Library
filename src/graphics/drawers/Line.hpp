@@ -153,7 +153,7 @@ namespace SPGL
             pixel(buffer, _end_end.x, _end_end.y + 1).average(_color, Math::fpart(_end_end.y) * _end_xgap);
 
             Float y = _start_end.y + _gradient;
-            for(Size x = _start_pixel.x + 1; x < _end_pixel.x; ++x)
+            for(Int32 x = _start_pixel.x + 1; x < _end_pixel.x; ++x)
             {
                 pixel(buffer, x, Int32(y) + 0).average(_color, Math::rfpart(y)); 
                 pixel(buffer, x, Int32(y) + 1).average(_color, Math::fpart(y)); 

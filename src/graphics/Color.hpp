@@ -69,6 +69,12 @@ namespace SPGL // Definitions
                         : r{Math::limit(ir)}
                         , g{Math::limit(ig)}
                         , b{Math::limit(ib)} { }
+        
+        // Grayscale Constructor
+        constexpr Color(const RepT lum)
+                        : r{Math::limit(lum)}
+                        , g{Math::limit(lum)}
+                        , b{Math::limit(lum)} { }
 
         // HSV Constructor
         constexpr static Color HSV(const RepT h, RepT s = RepT(1.0), RepT v = RepT(1.0))
@@ -108,10 +114,6 @@ namespace SPGL // Definitions
             : r{Math::byte_to_float<RepT>(in.r)}
             , g{Math::byte_to_float<RepT>(in.g)}
             , b{Math::byte_to_float<RepT>(in.b)} {}
-
-        // Grayscale Constructor
-        constexpr Color(const RepT in) 
-            : r{in}, g{in}, b{in} {}
 
     public: /* Variables */
         RepT r, g, b; 
@@ -169,6 +171,15 @@ namespace SPGL // Definitions
 
         Color match(const std::initializer_list<Color> colors)
         { return match<std::initializer_list<Color>>(colors); }
+
+        Color grayscale() const
+        { 
+            RepT lum = 
+                0.2126 * r +
+                0.7152 * g +
+                0.0722 * b;
+            return Color(lum);
+        }
 
     public: /* Static Colors */
         static const Color Black, White;

@@ -83,14 +83,14 @@ namespace SPGL // Definitions
         {
             if(width()  <= x) { return _garbage; }
             if(height() <= y) { return _garbage; }
-            return _img_data[y * width() + x];
+            return _img_data[(height() - 1 - y) * width() + x];
         }
 
         const value_type& get(Size x, Size y) const 
         {
             if(width()  <= x) { return _garbage; }
             if(height() <= y) { return _garbage; }
-            return _img_data[y * width() + x];
+            return _img_data[(height() - 1 - y) * width() + x];
         }
         
         /***/ value_type& get(Vec2s i)     /***/ { return get(i.x, i.y); }
@@ -127,14 +127,46 @@ namespace SPGL // Definitions
         auto crend() const { return std::reverse_iterator(std::cbegin(_img_data)); }
 
     public: /* Modifications  */
-        Image dither(const std::function<Color(Color)>) const;
+        Image dither(const std::function<Color(Color)>, const Color::RepT = 1.0) const;
+        Image dither_fast(const std::function<Color(Color)>) const;
         Image resize_nearest(const Size x, const Size y) const;
     };
 }
 
 namespace SPGL
 {
-    Image Image::dither(const std::function<Color(Color)> rounder) const 
+    template<Size bits>
+    static UInt8 round_byte(UInt8& byte)
+    {
+        byte &= ~(0xff >> bits);
+        byte |= byte >> (1 * bits);
+        byte |= byte >> (2 * bits);
+        byte |= byte >> (2 * bits);
+        byte |= byte >> (2 * bits);
+        return byte;
+    }
+
+    template<Size r_bits, Size g_bits, Size b_bits>
+    Color rgb_bit_pallet(const Color& color) 
+    {
+        Color::Bytes bytes = color;
+        round_byte<r_bits>(bytes.r);
+        round_byte<g_bits>(bytes.g);
+        round_byte<b_bits>(bytes.b);
+        return bytes;
+    }
+    
+    template<Size bits>
+    Color grayscale_bit_color(const Color& color) 
+    {
+        Color::Bytes bytes = color.grayscale();
+        round_byte<bits>(bytes.r);
+        round_byte<bits>(bytes.g);
+        round_byte<bits>(bytes.b);
+        return bytes;
+    }
+
+    Image Image::dither(const std::function<Color(Color)> rounder, const Color::RepT error_mul) const 
     {
         Image result = Image(*this);
 
@@ -151,7 +183,7 @@ namespace SPGL
 
             result(x + 0, y + 0) = round;
 
-            const Color error = (pixel - round);
+            const Color error = (pixel - round) * error_mul;
             result(x + 0, y + 1) += error * RATIO_7_48;
             result(x + 0, y + 2) += error * RATIO_5_48;
             
@@ -166,6 +198,32 @@ namespace SPGL
             result(x + 2, y + 0) += error * RATIO_5_48;
             result(x + 2, y + 1) += error * RATIO_3_48;
             result(x + 2, y + 2) += error * RATIO_1_48;
+        }
+
+        return std::move(result);
+    }
+
+    Image Image::dither_fast(const std::function<Color(Color)> rounder) const 
+    {
+        Image result = Image(*this);
+
+        constexpr Color::RepT RATIO_1_8  = 1.0 / 8.0;
+
+        for(long x = 0; x < width();  ++x)
+        for(long y = 0; y < height(); ++y)
+        {
+            const Color pixel = result(x, y);
+            const Color round = rounder(pixel);
+
+            result(x + 0, y + 0) = round;
+
+            const Color error = (pixel - round) * RATIO_1_8;
+            result(x + 0, y + 1) += error;
+            result(x + 0, y + 2) += error;
+            result(x + 1, y - 1) += error;
+            result(x + 1, y + 0) += error;
+            result(x + 1, y + 1) += error;
+            result(x + 2, y + 0) += error;
         }
 
         return std::move(result);

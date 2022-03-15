@@ -16,6 +16,8 @@
 
 #include "TypeNames.hpp"
 
+#include <cmath>
+
 namespace SPGL
 {
     template<class T>

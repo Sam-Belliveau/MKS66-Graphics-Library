@@ -46,4 +46,31 @@ namespace SPGL
 
         return file;
     }
+    
+    std::istream& operator>>(std::istream& file, Image& image)
+    {
+        std::string type;
+        Size sx, sy;
+        std::string depth;
+
+        file >> type;
+        file >> sx >> sy;
+        file >> depth;
+
+        UInt8 nl;
+        file.read(reinterpret_cast<char*>(&nl), 1);
+        
+        image = Image(sx, sy);
+
+        for(Size i = 0; i < sx * sy; ++i)
+        {
+            UInt8 r, g, b;
+            file.read(reinterpret_cast<char*>(&r), 1);
+            file.read(reinterpret_cast<char*>(&g), 1);
+            file.read(reinterpret_cast<char*>(&b), 1);
+            image[i] = Color::Bytes(r, g, b);
+        }
+
+        return file;
+    }
 }
