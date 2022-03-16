@@ -78,7 +78,7 @@ namespace SPGL
             {
                 Vec4d a = _edges[i + 0];
                 Vec4d b = _edges[i + 1];
-                Line<false> line(Vec2d(a.x, a.y), Vec2d(b.x, b.y), Color::White);
+                Line<true> line(Vec2d(a.x, a.y), Vec2d(b.x, b.y), Color::White);
                 line(_buffer);
             }
         }
@@ -104,7 +104,7 @@ namespace SPGL
                 Float64 radius;
                 command >> origin >> radius;
 
-                for(Float64 i = 0.0; i < 2.0 * 355.0; ++i)
+                for(Float64 i = 0.0; i < 710.0; i++)
                 {
                     Float64 theta_a = (i + 0.0) / 113.0;
                     Float64 theta_b = (i + 1.0) / 113.0;
@@ -125,18 +125,13 @@ namespace SPGL
                 const Vec2d t0 = a;
 
                 _edges.push_back(Vec3d(a));
-
-                for(Float64 t = 0.0; t <= 1.0; t += 1.0 / 256.0)
+                for(Float64 t = 0.0; t < 1.0; t += 1.0 / 256.0)
                 {
-                    Float64 m = t;
-                    Vec2d point = t0;
-                    point += t1 * m; m *= t;
-                    point += t2 * m; m *= t;
-                    point += t3 * m;
+                    Float64 m = 1.0;
+                    Vec2d point = t0 + t1 * (m *= t) + t2 * (m *= t) + t3 * (m *= t);
                     _edges.push_back(Vec3d(point));
                     _edges.push_back(Vec3d(point));
                 }
-
                 _edges.push_back(Vec3d(b));
             }},
 
@@ -144,25 +139,19 @@ namespace SPGL
                 Vec2d a, b, c, d;
                 command >> a >> b >> c >> d;
 
-
                 const Vec2d t3 = -a + 3.0 * b - 3.0 * c + d;
                 const Vec2d t2 = 3.0 * a - 6.0 * b + 3.0 * c;
                 const Vec2d t1 = -3.0 * a + 3.0 * b;
                 const Vec2d t0 = a;
 
                 _edges.push_back(Vec3d(a));
-
-                for(Float64 t = 0.0; t <= 1.0; t += 1.0 / 256.0)
+                for(Float64 t = 0.0; t < 1.0; t += 1.0 / 256.0)
                 {
                     Float64 m = t;
-                    Vec2d point = t0;
-                    point += t1 * m; m *= t;
-                    point += t2 * m; m *= t;
-                    point += t3 * m;
+                    Vec2d point = t0 + t1 * (m *= t) + t2 * (m *= t) + t3 * (m *= t);
                     _edges.push_back(Vec3d(point));
                     _edges.push_back(Vec3d(point));
                 }
-
                 _edges.push_back(Vec3d(d));
             }},
 

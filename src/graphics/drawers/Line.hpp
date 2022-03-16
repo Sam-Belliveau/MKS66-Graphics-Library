@@ -127,13 +127,13 @@ namespace SPGL
             _gradient = (_dt.x == 0) ? 1.0 : (_dt.y / _dt.x);
 
             const Float xend1 = std::round(_start.x);
-            _start_end = Vec2d(xend1, _start.y + _gradient * (xend1 - _start.x));
             _start_xgap = Math::rfpart(_start.x + 0.5);
+            _start_end = Vec2d(xend1, _start.y + _gradient * (xend1 - _start.x));
             _start_pixel = Vec2i(std::lround(_start_end.x), Int32(_start_end.y));
 
             const Float xend2 = std::round(_end.x);
+            _end_xgap = Math::fpart(_end.x + 0.5);
             _end_end = Vec2d(xend2, _end.y + _gradient * (xend2 - _end.x));
-            _end_xgap = Math::rfpart(_end.x + 0.5);
             _end_pixel = Vec2i(std::lround(_end_end.x), Int32(_end_end.y));
 
             _color = color;
@@ -147,10 +147,10 @@ namespace SPGL
         void operator()(Image& buffer)
         {            
             // End Points
-            pixel(buffer, _start_end.x, _start_end.y + 0).average(_color, Math::rfpart(_start_end.y) * _start_xgap);
-            pixel(buffer, _start_end.x, _start_end.y + 1).average(_color, Math::fpart(_start_end.y) * _start_xgap);
-            pixel(buffer, _end_end.x, _end_end.y + 0).average(_color, Math::rfpart(_end_end.y) * _end_xgap);
-            pixel(buffer, _end_end.x, _end_end.y + 1).average(_color, Math::fpart(_end_end.y) * _end_xgap);
+            pixel(buffer, _start_pixel.x, _start_pixel.y + 0).average(_color, Math::rfpart(_start_end.y) * _start_xgap);
+            pixel(buffer, _start_pixel.x, _start_pixel.y + 1).average(_color, Math::fpart(_start_end.y) * _start_xgap);
+            pixel(buffer, _end_pixel.x, _end_pixel.y + 0).average(_color, Math::rfpart(_end_end.y) * _end_xgap);
+            pixel(buffer, _end_pixel.x, _end_pixel.y + 1).average(_color, Math::fpart(_end_end.y) * _end_xgap);
 
             Float y = _start_end.y + _gradient;
             for(Int32 x = _start_pixel.x + 1; x < _end_pixel.x; ++x)
