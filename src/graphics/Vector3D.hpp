@@ -84,6 +84,9 @@ namespace SPGL
     public: // Print Support
         friend std::ostream& operator<<(std::ostream& file, const Vec3& vec)
         { return file << "[ " << vec.x << '\t' << vec.y << '\t' << vec.z << " ]"; }
+
+        friend std::istream& operator>>(std::istream& file, Vec3& vec)
+        { return file >> vec.x >> vec.y >> vec.z; }
     };
 
     using Vec3i = Vec3<Int32>;

@@ -16,6 +16,8 @@
 
 #include "TypeNames.hpp"
 
+#include <iostream>
+
 #include <cmath>
 
 namespace SPGL
@@ -75,6 +77,9 @@ namespace SPGL
     public: // Print Support
         friend std::ostream& operator<<(std::ostream& file, const Vec2& vec)
         { return file << "[ " << vec.x << '\t' << vec.y << " ]"; }
+
+        friend std::istream& operator>>(std::istream& file, Vec2& vec)
+        { return file >> vec.x >> vec.y; }
 
     };
 

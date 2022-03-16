@@ -62,7 +62,9 @@ namespace SPGL
                     std::cerr << "Finished!\n";
                 }
 
-                else std::cerr << "Unable To Find Command \"" << command << "\"\n";
+                else if(command[0] == '#' || command[0] == '/')
+                { std::cerr << "Comment \"" << command << "\"\n"; }
+                else { std::cerr << "Unable To Find Command \"" << command << "\"\n"; }
                 return true;
             }
             return false;
@@ -76,9 +78,15 @@ namespace SPGL
             {
                 Vec4d a = _edges[i + 0];
                 Vec4d b = _edges[i + 1];
-                Line<true> line(Vec2d(a.x, a.y), Vec2d(b.x, b.y), Color::White);
+                Line<false> line(Vec2d(a.x, a.y), Vec2d(b.x, b.y), Color::White);
                 line(_buffer);
             }
+        }
+
+        void add_line(const Vec4d& a, const Vec4d& b)
+        {
+            _edges.push_back(a);
+            _edges.push_back(b);
         }
 
     public:
@@ -86,32 +94,98 @@ namespace SPGL
         const std::unordered_map<std::string, CommandT> _command_list = 
         {
             {"line", [&](std::istream& command) {
-                double x0, y0, z0, x1, y1, z1;
-                command >> x0 >> y0 >> z0 >> x1 >> y1 >> z1;
-
-                _edges.push_back(Vec3d(x0, y0, z0));
-                _edges.push_back(Vec3d(x1, y1, z1));
+                Vec3d a, b;
+                command >> a >> b;
+                add_line(a, b);
             }},
+
+            {"circle", [&](std::istream& command) {
+                Vec3d origin;
+                Float64 radius;
+                command >> origin >> radius;
+
+                for(Float64 i = 0.0; i < 2.0 * 355.0; ++i)
+                {
+                    Float64 theta_a = (i + 0.0) / 113.0;
+                    Float64 theta_b = (i + 1.0) / 113.0;
+                    
+                    Vec3d point_a = origin + radius * Vec3d(std::cos(theta_a), std::sin(theta_a), 0.0);
+                    Vec3d point_b = origin + radius * Vec3d(std::cos(theta_b), std::sin(theta_b), 0.0);
+                    add_line(point_a, point_b);
+                }
+            }},
+
+            {"hermite", [&](std::istream& command) {
+                Vec2d a, b, c, d;
+                command >> a >> b >> c >> d;
+
+                const Vec2d t3 = 2.0 * a - 2.0 * b + c + d;
+                const Vec2d t2 = -3.0 * a + 3.0 * b - 2.0 * c - d;
+                const Vec2d t1 = c;
+                const Vec2d t0 = a;
+
+                _edges.push_back(Vec3d(a));
+
+                for(Float64 t = 0.0; t <= 1.0; t += 1.0 / 256.0)
+                {
+                    Float64 m = t;
+                    Vec2d point = t0;
+                    point += t1 * m; m *= t;
+                    point += t2 * m; m *= t;
+                    point += t3 * m;
+                    _edges.push_back(Vec3d(point));
+                    _edges.push_back(Vec3d(point));
+                }
+
+                _edges.push_back(Vec3d(b));
+            }},
+
+            {"bezier", [&](std::istream& command) {
+                Vec2d a, b, c, d;
+                command >> a >> b >> c >> d;
+
+
+                const Vec2d t3 = -a + 3.0 * b - 3.0 * c + d;
+                const Vec2d t2 = 3.0 * a - 6.0 * b + 3.0 * c;
+                const Vec2d t1 = -3.0 * a + 3.0 * b;
+                const Vec2d t0 = a;
+
+                _edges.push_back(Vec3d(a));
+
+                for(Float64 t = 0.0; t <= 1.0; t += 1.0 / 256.0)
+                {
+                    Float64 m = t;
+                    Vec2d point = t0;
+                    point += t1 * m; m *= t;
+                    point += t2 * m; m *= t;
+                    point += t3 * m;
+                    _edges.push_back(Vec3d(point));
+                    _edges.push_back(Vec3d(point));
+                }
+
+                _edges.push_back(Vec3d(d));
+            }},
+
 
             {"ident", [&](std::istream& command) {
                 _transform = Mat4d::Identity();
             }},
 
             {"scale", [&](std::istream& command) {
-                double x, y, z;
-                command >> x >> y >> z;
-                _transform = _transform * Mat4d::Scale(Vec3d(x, y, z));
+                Vec3d scale;
+                command >> scale;
+                _transform = _transform * Mat4d::Scale(scale);
             }},
 
             {"move", [&](std::istream& command) {
-                double x, y, z;
-                command >> x >> y >> z;
-                _transform = _transform * Mat4d::Translation(Vec3d(x, y, z));
+                Vec3d translate;
+                command >> translate;
+                _transform = _transform * Mat4d::Translation(translate);
             }},
 
             {"rotate", [&](std::istream& command) {
                 std::string axis;
-                double theta;
+                Float64 theta;
                 command >> axis >> theta;
 
                 theta = 355.0 * theta / 20340.0;
@@ -150,7 +224,7 @@ namespace SPGL
                 file << _buffer;
                 file.close();
 
-                std::system(("convert " + temp_file_name + " " + file_name + " && " + "rm -f ./.save_temp.ppm").c_str());
+                std::system(("convert " + temp_file_name + " " + file_name + " && " + "rm -f " + temp_file_name).c_str());
             }},
 
 

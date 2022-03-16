@@ -10,10 +10,7 @@ int main()
     file.open("./script.txt");
 
     SPGL::Engine engine(500, 500);
-        std::cerr << "AHHH\n";
-    while(engine.parse_command(file)) {
-        std::cerr << "AHHH\n";
-    }
+    while(engine.parse_command(file)) {}
 
     return 0;
 }
