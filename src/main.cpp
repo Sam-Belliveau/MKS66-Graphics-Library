@@ -1,7 +1,7 @@
 /*** FULL SOURCE CODE @ https://github.com/Sam-Belliveau/MKS66-Graphics-Library ***/
 
-#include <iostream>
-#include "Engine.hpp"
+#include <fstream>
+#include "./Engine.hpp"
 
 int main()
 {
@@ -12,5 +12,4 @@ int main()
     SPGL::Engine engine(500, 500);
     while(engine.parse_command(file)) {}
 
-    return 0;
 }

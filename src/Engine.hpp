@@ -63,10 +63,16 @@ namespace SPGL
                 }
 
                 else if(command[0] == '#' || command[0] == '/')
-                { std::cerr << "Comment \"" << command << "\"\n"; }
+                { 
+                    std::string comment;
+                    std::getline(stream, comment);
+                    std::cerr << "Comment \"" << command << " " << comment << "\"\n"; 
+                }
                 else { std::cerr << "Unable To Find Command \"" << command << "\"\n"; }
+                std::cerr << "true?\n";
                 return true;
             }
+            std::cerr << "false?\n";
             return false;
         }
 
@@ -89,10 +95,19 @@ namespace SPGL
             _edges.push_back(b);
         }
 
+        void add_point(const Vec4d& a)
+        {
+            add_line(a, a);
+        }
+
     public:
         using CommandT = std::function<void(std::istream& command)>;
         const std::unordered_map<std::string, CommandT> _command_list = 
         {
+            {"clear", [&](std::istream& command) {
+                _edges.clear();
+            }},
+
             {"line", [&](std::istream& command) {
                 Vec3d a, b;
                 command >> a >> b;
@@ -156,6 +171,80 @@ namespace SPGL
             }},
 
 
+            {"box", [&](std::istream& command) {
+                Vec3d a, b;
+                command >> a >> b;
+                b = a + b * Vec3d(+1, -1, -1);
+
+                Vec3d b1(a.x, a.y, a.z);
+                Vec3d b2(b.x, a.y, a.z);
+                Vec3d b3(b.x, a.y, b.z);
+                Vec3d b4(a.x, a.y, b.z);
+
+                Vec3d t1(a.x, b.y, a.z);
+                Vec3d t2(b.x, b.y, a.z);
+                Vec3d t3(b.x, b.y, b.z);
+                Vec3d t4(a.x, b.y, b.z);
+
+                add_line(b1, b2);
+                add_line(b2, b3);
+                add_line(b3, b4);
+                add_line(b4, b1);
+
+                add_line(t1, t2);
+                add_line(t2, t3);
+                add_line(t3, t4);
+                add_line(t4, t1);
+
+                add_line(b1, t1);
+                add_line(b2, t2);
+                add_line(b3, t3);
+                add_line(b4, t4);
+            }},
+
+            {"sphere", [&](std::istream& command) {
+                const Vec3d dt(1e-2, 1e-2, 1e-2);
+
+                Vec3d pos;
+                Float64 radius;
+                command >> pos >> radius;
+
+                for(Float64 phi = Math::PI / 100.0; phi < Math::PI; phi += Math::PI / 64.0)
+                {
+                    for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += 2.0 * Math::PI / (std::sin(phi) * radius))
+                    {
+                        Vec3d delta = radius * Vec3d(
+                            std::sin(phi) * std::cos(theta),
+                            std::cos(phi),
+                            std::sin(phi) * std::sin(theta)
+                        );
+
+                        add_point(pos + delta);
+                    }
+                }
+            }},
+
+            {"torus", [&](std::istream& command) {
+                Vec3d pos;
+                Float64 radius1;
+                Float64 radius2;
+                command >> pos >> radius1 >> radius2;
+
+                for(Float64 phi = 0.0; phi <= 2 * Math::PI; phi += Math::PI / 100.0)
+                {
+                    for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += Math::PI / 20.0)
+                    {
+                        Vec3d delta = Vec3d(
+                            radius2 * std::cos(phi) + radius1 * std::cos(phi) * std::cos(theta),
+                            radius1 * std::sin(theta),
+                            radius2 * std::sin(phi) + radius1 * std::sin(phi) * std::cos(theta)
+                        );
+
+                        add_point(pos + delta);
+                    }
+                }
+            }},
+
             {"ident", [&](std::istream& command) {
                 _transform = Mat4d::Identity();
             }},
@@ -163,13 +252,13 @@ namespace SPGL
             {"scale", [&](std::istream& command) {
                 Vec3d scale;
                 command >> scale;
-                _transform = _transform * Mat4d::Scale(scale);
+                _transform = Mat4d::Scale(scale) * _transform;
             }},
 
             {"move", [&](std::istream& command) {
                 Vec3d translate;
                 command >> translate;
-                _transform = _transform * Mat4d::Translation(translate);
+                _transform = Mat4d::Translation(translate) * _transform;
             }},
 
             {"rotate", [&](std::istream& command) {
@@ -177,11 +266,11 @@ namespace SPGL
                 Float64 theta;
                 command >> axis >> theta;
 
-                theta = 355.0 * theta / 20340.0;
+                theta = Math::PI * theta / 180.0;
 
-                /**/ if(axis == "x") { _transform = _transform * Mat4d::RotX(theta); }
-                else if(axis == "y") { _transform = _transform * Mat4d::RotY(theta); }
-                else if(axis == "z") { _transform = _transform * Mat4d::RotZ(theta); }
+                /**/ if(axis == "x") { _transform = Mat4d::RotX(theta) * _transform; }
+                else if(axis == "y") { _transform = Mat4d::RotY(theta) * _transform; }
+                else if(axis == "z") { _transform = Mat4d::RotZ(theta) * _transform; }
                 else { std::cerr << "Unknown Axis \"" << axis << "\". Ignoring...\n"; }
             }},
 
@@ -213,7 +302,7 @@ namespace SPGL
                 file << _buffer;
                 file.close();
 
-                std::system(("convert " + temp_file_name + " " + file_name + " && " + "rm -f " + temp_file_name).c_str());
+                std::system(("convert " + temp_file_name + " " + file_name + " && rm -f " + temp_file_name).c_str());
             }},
 
 
