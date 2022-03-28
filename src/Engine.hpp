@@ -203,8 +203,6 @@ namespace SPGL
             }},
 
             {"sphere", [&](std::istream& command) {
-                const Vec3d dt(1e-2, 1e-2, 1e-2);
-
                 Vec3d pos;
                 Float64 radius;
                 command >> pos >> radius;
