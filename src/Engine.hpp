@@ -40,6 +40,7 @@ namespace SPGL
     private:
         Image _buffer;
         EdgeListd _edges;
+        EdgeListd _triangles;
         Mat4d _transform;
 
     public:
@@ -79,14 +80,49 @@ namespace SPGL
     private:
         void draw_image() 
         {
+            const Vec3d view(0, 0, 1);
+
             std::fill(_buffer.begin(), _buffer.end(), Color::Black);
-            for(Size i = 0; i < _edges.size() - 1; i += 2)
+            for(Size i = 0; i + 1 < _edges.size(); i += 2)
             {
                 Vec4d a = _edges[i + 0];
                 Vec4d b = _edges[i + 1];
                 Line<true> line(Vec2d(a.x, a.y), Vec2d(b.x, b.y), Color::White);
                 line(_buffer);
             }
+
+            for(Size i = 0; i + 2 < _triangles.size(); i += 3)
+            {
+                Vec4d am = _triangles[i + 0];
+                Vec4d bm = _triangles[i + 1];
+                Vec4d cm = _triangles[i + 2];
+
+                Vec3d a = am, b = bm, c = cm;
+
+                Vec3d p0 = b - a;
+                Vec3d p1 = c - a;
+                Vec3d n = p0.cross(p1);
+
+                if(view.dot(n) > 0)
+                {
+                    Line<true>(Vec2d(a.x, a.y), Vec2d(b.x, b.y), Color::White)(_buffer);
+                    Line<true>(Vec2d(b.x, b.y), Vec2d(c.x, c.y), Color::White)(_buffer);
+                    Line<true>(Vec2d(c.x, c.y), Vec2d(a.x, a.y), Color::White)(_buffer);
+                }
+            }
+        }
+
+        void add_triangle(const Vec4d& a, const Vec4d& b, const Vec4d& c)
+        {
+            _triangles.push_back(a);
+            _triangles.push_back(b);
+            _triangles.push_back(c);
+        }
+
+        void add_quad(const Vec4d& a, const Vec4d& b, const Vec4d& c, const Vec4d& d)
+        {
+            add_triangle(a, b, c);
+            add_triangle(c, d, a);
         }
 
         void add_line(const Vec4d& a, const Vec4d& b)
@@ -106,6 +142,7 @@ namespace SPGL
         {
             {"clear", [&](std::istream& command) {
                 _edges.clear();
+                _triangles.clear();
             }},
 
             {"line", [&](std::istream& command) {
@@ -186,20 +223,12 @@ namespace SPGL
                 Vec3d t3(b.x, b.y, b.z);
                 Vec3d t4(a.x, b.y, b.z);
 
-                add_line(b1, b2);
-                add_line(b2, b3);
-                add_line(b3, b4);
-                add_line(b4, b1);
-
-                add_line(t1, t2);
-                add_line(t2, t3);
-                add_line(t3, t4);
-                add_line(t4, t1);
-
-                add_line(b1, t1);
-                add_line(b2, t2);
-                add_line(b3, t3);
-                add_line(b4, t4);
+                add_quad(b4, b3, b2, b1);
+                add_quad(t1, t2, t3, t4);
+                add_quad(t2, t1, b1, b2);
+                add_quad(t3, t2, b2, b3);
+                add_quad(t4, t3, b3, b4);
+                add_quad(t1, t4, b4, b1);
             }},
 
             {"sphere", [&](std::istream& command) {
@@ -207,17 +236,37 @@ namespace SPGL
                 Float64 radius;
                 command >> pos >> radius;
 
-                for(Float64 phi = Math::PI / 100.0; phi < Math::PI; phi += Math::PI / 64.0)
+                const Float64 dp = Math::PI / 16.0;
+                const Float64 dt = Math::PI / 16.0;
+                for(Float64 phi = 0.0; phi < Math::PI; phi += dp)
                 {
-                    for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += 2.0 * Math::PI / (std::sin(phi) * radius))
+                    for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += dt)
                     {
-                        Vec3d delta = radius * Vec3d(
+                        Vec3d da = radius * Vec3d(
                             std::sin(phi) * std::cos(theta),
                             std::cos(phi),
                             std::sin(phi) * std::sin(theta)
                         );
 
-                        add_point(pos + delta);
+                        Vec3d db = radius * Vec3d(
+                            std::sin(phi + dp) * std::cos(theta),
+                            std::cos(phi + dp),
+                            std::sin(phi + dp) * std::sin(theta)
+                        );
+
+                        Vec3d dc = radius * Vec3d(
+                            std::sin(phi + dp) * std::cos(theta + dt),
+                            std::cos(phi + dp),
+                            std::sin(phi + dp) * std::sin(theta + dt)
+                        );
+
+                        Vec3d dd = radius * Vec3d(
+                            std::sin(phi) * std::cos(theta + dt),
+                            std::cos(phi),
+                            std::sin(phi) * std::sin(theta + dt)
+                        );
+
+                        add_quad(da, db, dc, dd);
                     }
                 }
             }},
@@ -228,17 +277,37 @@ namespace SPGL
                 Float64 radius2;
                 command >> pos >> radius1 >> radius2;
 
-                for(Float64 phi = 0.0; phi <= 2 * Math::PI; phi += Math::PI / 100.0)
+                const Float64 dp = Math::PI / 16.0;
+                const Float64 dt = Math::PI / 8.0;
+                for(Float64 phi = 0.0; phi <= 2 * Math::PI; phi += dp)
                 {
-                    for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += Math::PI / 20.0)
+                    for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += dt)
                     {
-                        Vec3d delta = Vec3d(
+                        Vec3d da = Vec3d(
                             radius2 * std::cos(phi) + radius1 * std::cos(phi) * std::cos(theta),
                             radius1 * std::sin(theta),
                             radius2 * std::sin(phi) + radius1 * std::sin(phi) * std::cos(theta)
                         );
+ 
+                        Vec3d db = Vec3d(
+                            radius2 * std::cos(phi + dp) + radius1 * std::cos(phi + dp) * std::cos(theta),
+                            radius1 * std::sin(theta),
+                            radius2 * std::sin(phi + dp) + radius1 * std::sin(phi + dp) * std::cos(theta)
+                        );
+ 
+                        Vec3d dc = Vec3d(
+                            radius2 * std::cos(phi + dp) + radius1 * std::cos(phi + dp) * std::cos(theta + dt),
+                            radius1 * std::sin(theta + dt),
+                            radius2 * std::sin(phi + dp) + radius1 * std::sin(phi + dp) * std::cos(theta + dt)
+                        );
+ 
+                        Vec3d dd = Vec3d(
+                            radius2 * std::cos(phi) + radius1 * std::cos(phi) * std::cos(theta + dt),
+                            radius1 * std::sin(theta + dt),
+                            radius2 * std::sin(phi) + radius1 * std::sin(phi) * std::cos(theta + dt)
+                        );
 
-                        add_point(pos + delta);
+                        add_quad(da, db, dc, dd);
                     }
                 }
             }},
@@ -274,6 +343,7 @@ namespace SPGL
 
             {"apply", [&](std::istream& command) {
                 _edges = _transform * _edges;
+                _triangles = _transform * _triangles;
             }},
 
             {"display", [&](std::istream& command) {
@@ -302,8 +372,6 @@ namespace SPGL
 
                 std::system(("convert " + temp_file_name + " " + file_name + " && rm -f " + temp_file_name).c_str());
             }},
-
-
         };
     };
 

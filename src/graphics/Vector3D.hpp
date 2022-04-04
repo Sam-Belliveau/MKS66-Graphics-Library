@@ -58,6 +58,15 @@ namespace SPGL
         constexpr T dot(const Vec3& rhs) const 
         { return x * rhs.x + y * rhs.y + z * rhs.z; }
 
+        constexpr Vec3 cross(const Vec3& rhs) const 
+        { 
+            return Vec3(
+                y * rhs.z - z * rhs.y, 
+                z * rhs.x - x * rhs.z,
+                x * rhs.y - y * rhs.x
+            ); 
+        }
+
         constexpr Vec3 normalized() const 
         { return *this / mag(); }
 
