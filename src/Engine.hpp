@@ -20,7 +20,9 @@
 #include "graphics/Vector3D.hpp"
 #include "graphics/Vector4D.hpp"
 #include "graphics/Matrix4D.hpp"
+#include "graphics/ZBuffer.hpp"
 #include "graphics/drawers/Line.hpp"
+#include "graphics/drawers/Triangle.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -40,6 +42,7 @@ namespace SPGL
 
     private:
         Image _buffer;
+        ZBuffer _zbuffer;
         EdgeListd _edges;
         EdgeListd _triangles;
         std::stack<Mat4d> _transform;
@@ -47,6 +50,7 @@ namespace SPGL
     public:
         Engine(Size x, Size y)
             : _buffer{x, y}
+            , _zbuffer{x, y}
             , _edges{}
             , _transform{} 
         {
@@ -91,8 +95,8 @@ namespace SPGL
             {
                 Vec4d a = _edges[i + 0];
                 Vec4d b = _edges[i + 1];
-                Line<true> line(Vec2d(a.x, a.y), Vec2d(b.x, b.y), Color::White);
-                line(_buffer);
+                Line line(Vec3d(a.x, b.y, a.z), Vec3d(b.x, b.y, b.z), Color::RandomHue());
+                line(_buffer, _zbuffer);
             }
 
             for(Size i = 0; i + 2 < _triangles.size(); i += 3)
@@ -109,9 +113,7 @@ namespace SPGL
 
                 if(view.dot(n) > 0)
                 {
-                    Line<true>(Vec2d(a.x, a.y), Vec2d(b.x, b.y), Color::White)(_buffer);
-                    Line<true>(Vec2d(b.x, b.y), Vec2d(c.x, c.y), Color::White)(_buffer);
-                    Line<true>(Vec2d(c.x, c.y), Vec2d(a.x, a.y), Color::White)(_buffer);
+                    Triangle(a, b, c, Color::RandomHue())(_buffer, _zbuffer);
                 }
             }
 
@@ -356,6 +358,10 @@ namespace SPGL
                 else if(axis == "z") { _transform.top() = _transform.top() * Mat4d::RotZ(theta); }
                 else { std::cerr << "Unknown Axis \"" << axis << "\". Ignoring...\n"; }
                 draw_image();
+            }},
+
+            {"clear_zbuffer", [&](std::istream& command) {
+                _zbuffer.clear();
             }},
 
             {"display", [&](std::istream& command) {

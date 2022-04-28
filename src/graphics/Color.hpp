@@ -17,6 +17,7 @@
 #include <initializer_list>
 #include <algorithm>
 #include <limits>
+#include <random>
 
 #include "TypeNames.hpp"
 #include "Math.hpp"
@@ -107,6 +108,13 @@ namespace SPGL // Definitions
             }
 
             return Color(v);
+        }
+
+        static Color RandomHue() 
+        {
+            static std::default_random_engine random_engine;
+            static std::uniform_real_distribution hue(0, 360);
+            return HSV(hue(random_engine), 1.0, 1.0);
         }
 
         // Bytes Constructor
