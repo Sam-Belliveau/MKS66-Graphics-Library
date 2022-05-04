@@ -58,6 +58,8 @@ namespace SPGL
             , _lights{} {}
 
     public:
+        const Vec3d& view() const { return _view; }
+
         void set_view(const Vec3d& view)
         { _view = view; }
 
@@ -86,7 +88,7 @@ namespace SPGL
                     plot += kS * c * spec;
                 }
                 
-                _img(p.pixel()) = plot; 
+                _img(p.pixel()) = plot.clamped(); 
             }
         }
 

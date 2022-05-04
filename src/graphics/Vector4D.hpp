@@ -15,6 +15,7 @@
  */
 
 #include <cmath>
+#include <deque>
 #include <array>
 
 #include "TypeNames.hpp"
@@ -119,7 +120,7 @@ namespace SPGL
 namespace SPGL
 {
     template<class T>
-    using EdgeList = std::vector<Vec4<T>>;
+    using EdgeList = std::deque<Vec4<T>>;
     using EdgeListf = EdgeList<Float32>;
     using EdgeListd = EdgeList<Float64>;
 

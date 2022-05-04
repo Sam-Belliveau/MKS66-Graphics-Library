@@ -167,6 +167,9 @@ namespace SPGL // Definitions
         constexpr Color& operator/=(const RepT rhs)
         { r /= rhs; g /= rhs; b /= rhs; return clamp(); }
 
+        constexpr Color clamped() const
+        { return Color(Math::limit(r), Math::limit(g), Math::limit(b)); }
+
     public: /* Match Function */
         constexpr RepT distance(const Color other) const
         {

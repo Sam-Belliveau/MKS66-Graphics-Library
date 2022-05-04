@@ -81,14 +81,14 @@ namespace SPGL
         }
 
     private:
-        inline Color& pixel(Image& buffer, Size x, Size y)
+        inline Color& pixel(Image& buffer, Size x, Size y) const
         {
             if(_steep) std::swap(x, y);
             return buffer(x, y); 
         }
 
     public:
-        void operator()(FrameBuffer& scene)
+        void operator()(FrameBuffer& scene) const
         {
             int D = (_dt.y << 1) - _dt.x;
             int y = _start.y;
@@ -112,7 +112,7 @@ namespace SPGL
             } 
         }
 
-        void operator()(FrameBuffer& scene, const Vec3d& normal)
+        void operator()(FrameBuffer& scene, const Vec3d& normal) const
         {
             int D = (_dt.y << 1) - _dt.x;
             int y = _start.y;

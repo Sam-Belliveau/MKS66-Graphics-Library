@@ -43,35 +43,32 @@ namespace SPGL
             : _pos{pos}, _color{VertexToColor(pos)} {}
         
     public:
-        Vec2i pixel() const { return Vec2i(std::round(_pos.x), std::round(_pos.y)); }
+        Vec2i pixel() const { return Vec2i(_pos.x + 0.5, _pos.y + 0.5); }
         Float depth() const { return _pos.z; }
 
         const Vec3d& pos() const { return _pos; }
         const Color& color() const { return _color; }
 
+    public:
+        constexpr Vertex& operator+=(const Vertex& rhs) { _pos += rhs._pos; _color += rhs._color; return *this; }
+        constexpr Vertex& operator-=(const Vertex& rhs) { _pos -= rhs._pos; _color -= rhs._color; return *this; }
+        constexpr Vertex& operator*=(const Float& rhs) { _pos *= rhs; _color *= rhs; return *this; }
+        constexpr Vertex& operator/=(const Float& rhs) { _pos /= rhs; _color /= rhs; return *this; }
+        
+        friend Vertex operator+(Vertex lhs, const Vertex& rhs) { return lhs += rhs; }
+        friend Vertex operator-(Vertex lhs, const Vertex& rhs) { return lhs -= rhs; }
+        friend Vertex operator*(Vertex lhs, const Float& rhs) { return lhs *= rhs; }
+        friend Vertex operator*(const Float& rhs, Vertex lhs) { return lhs *= rhs; }
+        friend Vertex operator/(Vertex lhs, const Float& rhs) { return lhs /= rhs; }
+
+    public: 
         Vertex intersect_x(const Vertex& other, int x) const
-        {
-            return Vertex(
-                Math::map(x, pixel().x, other.pixel().x, pos(), other.pos()),
-                Math::map(x, pixel().x, other.pixel().x, color(), other.color())
-            );
-        }
+        { return Math::map(x, pixel().x, other.pixel().x, *this, other); }
 
         Vertex intersect_y(const Vertex& other, int y) const
-        {
-            return Vertex(
-                Math::map(y, pixel().y, other.pixel().y, pos(), other.pos()),
-                Math::map(y, pixel().y, other.pixel().y, color(), other.color())
-            );
-        }
+        { return Math::map(y, pixel().y, other.pixel().y, *this, other); }
 
         Vertex intersect_z(const Vertex& other, Float z) const
-        {
-            return Vertex(
-                Math::map(z, pos().z, other.pos().z, pos(), other.pos()),
-                Math::map(z, pos().z, other.pos().z, color(), other.color())
-            );
-        }
-
+        { return Math::map(z, pos().z, other.pos().z, *this, other); }
     };
 }

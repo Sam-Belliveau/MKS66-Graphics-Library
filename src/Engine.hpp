@@ -39,26 +39,29 @@ namespace SPGL
 {
     class Engine
     {
+    public:
+        constexpr static Float kSegments = 512.0;
 
     private:
+        Color _color;
         FrameBuffer _scene;
-        EdgeListd _edges;
-        EdgeListd _triangles;
         std::stack<Mat4d> _transform;
+
+        int tri_count = 0;
 
     public:
         Engine(Size x, Size y)
-            : _scene{x, y}
-            , _edges{}
+            : _color{Color::White}
+            , _scene{x, y}
             , _transform{} 
         {
             for(Size i = 0; i < 64; ++i) 
                 _transform.push(Mat4d::Identity());
             
-            _scene.add_light(Vertex(Vec3d(0, 1, 0), 0.75 * Color::White));
-            _scene.add_light(Vertex(Vec3d(0, -1, -1), 0.75 * Color::Green));
-            _scene.add_light(Vertex(Vec3d(1, -1, 1), 0.75 * Color::Red));
-            _scene.add_light(Vertex(Vec3d(-1, -1, 1), 0.75 * Color::Blue));
+            _scene.add_light(Vertex(Vec3d(0, 1, 0), 0.8 * Color::White));
+            _scene.add_light(Vertex(Vec3d(0, -1, -1), 0.2 * Color::Green));
+            _scene.add_light(Vertex(Vec3d(1, -1, 1), 0.2 * Color::Red));
+            _scene.add_light(Vertex(Vec3d(-1, -1, 1), 0.2 * Color::Blue));
         }
 
     public:
@@ -90,57 +93,38 @@ namespace SPGL
         }
 
     private:
-        void draw_image() 
+        Mat4d& get_transform() { return _transform.top(); }
+
+        void draw_triangle(const Vec4d& a, const Vec4d& b, const Vec4d& c)
         {
-            const Vec3d view(0, 0, 1);
+            ++tri_count;
+            Triangle triangle{ 
+                Vertex(get_transform() * a, _color), 
+                Vertex(get_transform() * b, _color), 
+                Vertex(get_transform() * c, _color) 
+            };
 
-            for(Size i = 1; i < _edges.size(); i += 2)
-            {
-                Line(
-                    Vertex(_edges[i - 1]),
-                    Vertex(_edges[i - 0])
-                )(_scene);
-            }
-
-            for(Size i = 2; i < _triangles.size(); i += 3)
-            {
-                Triangle triangle{
-                    Vertex(_triangles[i - 2]),
-                    Vertex(_triangles[i - 1]),
-                    Vertex(_triangles[i - 0])
-                };
-
-                if(view.dot(triangle.normal()) >= 0)
-                    triangle(_scene);
-            }
-
-            _triangles.clear();
-            _edges.clear();
+            if(_scene.view().dot(triangle.normal()) >= 0)
+                triangle(_scene);
         }
 
-        void add_triangle(const Vec4d& a, const Vec4d& b, const Vec4d& c)
+        void draw_quad(const Vec4d& a, const Vec4d& b, const Vec4d& c, const Vec4d& d)
         {
-            _triangles.push_back(_transform.top() * a);
-            _triangles.push_back(_transform.top() * b);
-            _triangles.push_back(_transform.top() * c);
+            draw_triangle(a, b, c);
+            draw_triangle(c, d, a);
         }
 
-        void add_quad(const Vec4d& a, const Vec4d& b, const Vec4d& c, const Vec4d& d)
+        void draw_line(const Vec4d& a, const Vec4d& b)
         {
-            add_triangle(a, b, c);
-            add_triangle(c, d, a);
+            Line line{
+                Vertex(get_transform() * a, _color), 
+                Vertex(get_transform() * b, _color)
+            };
+            
+            line(_scene);
         }
 
-        void add_line(const Vec4d& a, const Vec4d& b)
-        {
-            _edges.push_back(_transform.top() * a);
-            _edges.push_back(_transform.top() * b);
-        }
-
-        void add_point(const Vec4d& a)
-        {
-            add_line(a, a);
-        }
+        void draw_point(const Vec4d& a) { draw_line(a, a); }
 
     public:
         using CommandT = std::function<void(std::istream& command)>;
@@ -148,18 +132,24 @@ namespace SPGL
         {
             {"pop", [&](std::istream& command) {
                 if(_transform.size() > 1) _transform.pop();
-                else _transform.top() = Mat4d::Identity();
+                else get_transform() = Mat4d::Identity();
             }},
 
             {"push", [&](std::istream& command) {
-                _transform.push(_transform.top());
+                _transform.push(get_transform());
+            }},
+
+            {"color", [&](std::istream& command) {
+                Color color;
+                command >> color.r >> color.g >> color.b;
+
+                _color = color;
             }},
 
             {"line", [&](std::istream& command) {
                 Vec3d a, b;
                 command >> a >> b;
-                add_line(a, b);
-                draw_image();
+                draw_line(a, b);
             }},
 
             {"circle", [&](std::istream& command) {
@@ -167,16 +157,15 @@ namespace SPGL
                 Float64 radius;
                 command >> origin >> radius;
 
-                for(Float64 i = 0.0; i < 710.0; i++)
+                Vec3d last_point = origin + radius * Vec3d(1.0, 0.0, 0.0);
+
+                const Float dt = Math::PI / kSegments;
+                for(Float theta = dt; theta < Math::TAU; theta += dt)
                 {
-                    Float64 theta_a = (i + 0.0) / 113.0;
-                    Float64 theta_b = (i + 1.0) / 113.0;
-                    
-                    Vec3d point_a = origin + radius * Vec3d(std::cos(theta_a), std::sin(theta_a), 0.0);
-                    Vec3d point_b = origin + radius * Vec3d(std::cos(theta_b), std::sin(theta_b), 0.0);
-                    add_line(point_a, point_b);
+                    Vec3d point = origin + radius * Vec3d(std::cos(theta), std::sin(theta), 0.0);
+                    draw_line(last_point, point);
+                    last_point = point;
                 }
-                draw_image();
             }},
 
             {"hermite", [&](std::istream& command) {
@@ -188,16 +177,17 @@ namespace SPGL
                 const Vec2d t1 = c;
                 const Vec2d t0 = a;
 
-                _edges.push_back(Vec3d(a));
-                for(Float64 t = 0.0; t < 1.0; t += 1.0 / 256.0)
+                Vec2d last_point = t0;
+                for(Float64 t = 0.0; t < 1.0; t += 1.0 / kSegments)
                 {
                     Float64 m = 1.0;
-                    Vec2d point = t0 + t1 * (m *= t) + t2 * (m *= t) + t3 * (m *= t);
-                    _edges.push_back(Vec3d(point));
-                    _edges.push_back(Vec3d(point));
+                    Vec2d point = t0;
+                    point += t1 * (m *= t);
+                    point += t2 * (m *= t);
+                    point += t3 * (m *= t);
+                    draw_line(Vec3d(last_point), Vec3d(point));
+                    last_point = point;
                 }
-                _edges.push_back(Vec3d(b));
-                draw_image();
             }},
 
             {"bezier", [&](std::istream& command) {
@@ -209,16 +199,17 @@ namespace SPGL
                 const Vec2d t1 = -3.0 * a + 3.0 * b;
                 const Vec2d t0 = a;
 
-                _edges.push_back(Vec3d(a));
-                for(Float64 t = 0.0; t < 1.0; t += 1.0 / 256.0)
+                Vec2d last_point = t0;
+                for(Float64 t = 0.0; t < 1.0; t += 1.0 / kSegments)
                 {
                     Float64 m = t;
-                    Vec2d point = t0 + t1 * (m *= t) + t2 * (m *= t) + t3 * (m *= t);
-                    _edges.push_back(Vec3d(point));
-                    _edges.push_back(Vec3d(point));
+                    Vec2d point = t0;
+                    point += t1 * (m *= t);
+                    point += t2 * (m *= t);
+                    point += t3 * (m *= t);
+                    draw_line(Vec3d(last_point), Vec3d(point));
+                    last_point = point;
                 }
-                _edges.push_back(Vec3d(d));
-                draw_image();
             }},
 
 
@@ -227,23 +218,12 @@ namespace SPGL
                 command >> a >> b;
                 b = a + b * Vec3d(+1, -1, -1);
 
-                Vec3d b1(a.x, a.y, a.z);
-                Vec3d b2(b.x, a.y, a.z);
-                Vec3d b3(b.x, a.y, b.z);
-                Vec3d b4(a.x, a.y, b.z);
+                Vec3d b1(a.x, a.y, a.z), b2(b.x, a.y, a.z), b3(b.x, a.y, b.z), b4(a.x, a.y, b.z);
+                Vec3d t1(a.x, b.y, a.z), t2(b.x, b.y, a.z), t3(b.x, b.y, b.z), t4(a.x, b.y, b.z);
 
-                Vec3d t1(a.x, b.y, a.z);
-                Vec3d t2(b.x, b.y, a.z);
-                Vec3d t3(b.x, b.y, b.z);
-                Vec3d t4(a.x, b.y, b.z);
-
-                add_quad(b1, b2, b3, b4);
-                add_quad(t4, t3, t2, t1);
-                add_quad(b2, b1, t1, t2);
-                add_quad(b3, b2, t2, t3);
-                add_quad(b4, b3, t3, t4);
-                add_quad(b1, b4, t4, t1);
-                draw_image();
+                draw_quad(b1, b2, b3, b4); draw_quad(t4, t3, t2, t1);
+                draw_quad(b2, b1, t1, t2); draw_quad(b3, b2, t2, t3);
+                draw_quad(b4, b3, t3, t4); draw_quad(b1, b4, t4, t1);
             }},
 
             {"sphere", [&](std::istream& command) {
@@ -251,11 +231,11 @@ namespace SPGL
                 Float64 radius;
                 command >> pos >> radius;
 
-                const Float64 dp = Math::PI / 128.0;
-                const Float64 dt = Math::PI / 64.0;
+                const Float64 dp = Math::PI / kSegments;
+                const Float64 dt = Math::PI / kSegments;
                 for(Float64 phi = 0.0; phi < Math::PI; phi += dp)
                 {
-                    for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += dt)
+                    for(Float64 theta = 0.0; theta <= Math::TAU; theta += dt)
                     {
                         Vec3d da = pos + radius * Vec3d(
                             std::cos(phi),
@@ -281,10 +261,9 @@ namespace SPGL
                             std::sin(phi) * std::sin(theta + dt)
                         );
 
-                        add_quad(da, db, dc, dd);
+                        draw_quad(da, db, dc, dd);
                     }
                 }
-                draw_image();
             }},
 
             {"torus", [&](std::istream& command) {
@@ -293,11 +272,11 @@ namespace SPGL
                 Float64 radius2;
                 command >> pos >> radius1 >> radius2;
 
-                const Float64 dp = Math::PI / 128.0;
-                const Float64 dt = Math::PI / 64.0;
-                for(Float64 phi = 0.0; phi <= 2 * Math::PI; phi += dp)
+                const Float64 dp = Math::TAU / kSegments;
+                const Float64 dt = Math::TAU / kSegments;
+                for(Float64 phi = 0.0; phi <= Math::TAU; phi += dp)
                 {
-                    for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += dt)
+                    for(Float64 theta = 0.0; theta <= Math::TAU; theta += dt)
                     {
                         Vec3d da = pos + Vec3d(
                             radius2 * std::cos(phi) + radius1 * std::cos(phi) * std::cos(theta + dt),
@@ -323,24 +302,21 @@ namespace SPGL
                             radius2 * std::sin(phi) + radius1 * std::sin(phi) * std::cos(theta)
                         );
 
-                        add_quad(da, db, dc, dd);
+                        draw_quad(da, db, dc, dd);
                     }
                 }
-                draw_image();
             }},
 
             {"scale", [&](std::istream& command) {
                 Vec3d scale;
                 command >> scale;
-                _transform.top() = _transform.top() * Mat4d::Scale(scale);
-                draw_image();
+                get_transform() = get_transform() * Mat4d::Scale(scale);
             }},
 
             {"move", [&](std::istream& command) {
                 Vec3d translate;
                 command >> translate;
-                _transform.top() = _transform.top() * Mat4d::Translation(translate);
-                draw_image();
+                get_transform() = get_transform() * Mat4d::Translation(translate);
             }},
 
             {"rotate", [&](std::istream& command) {
@@ -350,11 +326,10 @@ namespace SPGL
 
                 theta = Math::PI * theta / 180.0;
 
-                /**/ if(axis == "x") { _transform.top() = _transform.top() * Mat4d::RotX(theta); }
-                else if(axis == "y") { _transform.top() = _transform.top() * Mat4d::RotY(theta); }
-                else if(axis == "z") { _transform.top() = _transform.top() * Mat4d::RotZ(theta); }
+                /**/ if(axis == "x") { get_transform() = get_transform() * Mat4d::RotX(theta); }
+                else if(axis == "y") { get_transform() = get_transform() * Mat4d::RotY(theta); }
+                else if(axis == "z") { get_transform() = get_transform() * Mat4d::RotZ(theta); }
                 else { std::cerr << "Unknown Axis \"" << axis << "\". Ignoring...\n"; }
-                draw_image();
             }},
 
             {"clear_zbuffer", [&](std::istream& command) {
@@ -368,6 +343,8 @@ namespace SPGL
                 file.open(temp_file_name, std::ios::binary);
                 file << _scene.image();
                 file.close();
+
+                std::cerr << "# of Triangles: " << tri_count << "\n";
 
                 std::system(("open " + temp_file_name).c_str());
             }},

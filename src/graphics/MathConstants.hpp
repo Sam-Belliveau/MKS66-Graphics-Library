@@ -22,6 +22,9 @@ namespace SPGL
     {
         static constexpr FloatMax PI
             = 3.141592653589793238462643383279L;
+            
+        static constexpr FloatMax TAU
+            = 2.0 * PI;
 
         static constexpr FloatMax E
             = 2.718281828459045235360287471352L;

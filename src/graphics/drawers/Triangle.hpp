@@ -53,7 +53,7 @@ namespace SPGL
     public:
         const Vec3d& normal() const { return _normal; }
 
-        void operator()(FrameBuffer& scene)
+        void operator()(FrameBuffer& scene) const
         {
             for(int y = _t.pixel().y; y < _m.pixel().y; ++y)
                 Line(_t.intersect_y(_b, y), _t.intersect_y(_m, y))(scene, _normal);
