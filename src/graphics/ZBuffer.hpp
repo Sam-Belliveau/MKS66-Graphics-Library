@@ -20,7 +20,7 @@
 #include <iterator> // std::reverse_iterator
 
 #include "TypeNames.hpp"
-#include "Vector2D.hpp"
+#include "Vertex.hpp"
 #include "Color.hpp"
 
 namespace SPGL // Definitions
@@ -108,12 +108,10 @@ namespace SPGL // Definitions
         const value_type& operator()(Vec2s i) const { return get(i.x, i.y); }
 
         /*** Double value indexing ***/
-        /***/ bool set(Size x, Size y, value_type depth, Float max_err = 1.0 / 8.0)
+        /***/ bool plot(const Vertex& p, Float max_err = 1.0 / 16.0)
         {
-            value_type& pixel = get(x, y);
-            if(depth - pixel <= max_err) return false;
-            pixel = depth;
-            return true;
+            if(p.depth() - get(p.pixel()) <= max_err) return false;
+            get(p.pixel()) = p.depth(); return true;
         }
 
     private: /* Raw Data */

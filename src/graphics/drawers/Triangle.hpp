@@ -18,6 +18,7 @@
 #include <algorithm>
 
 #include "Line.hpp"
+#include "../Math.hpp"
 #include "../Image.hpp"
 #include "../Vector2D.hpp"
 
@@ -27,67 +28,38 @@ namespace SPGL
     class Triangle
     {
     private:
-        Vec2i _t;
-        Float _t_depth;
-        Vec2i _m;
-        Float _m_depth;
-        Vec2i _b;
-        Float _b_depth;
+        Vertex _t;
+        Vertex _m;
+        Vertex _b;
 
-        Color _color;
+        Vec3d _normal;
 
     public:
-        Triangle(Vec3d a, Vec3d b, Vec3d c, Color color)
+        Triangle(Vertex a, Vertex b, Vertex c)
         {
-            if(b.y < a.y) std::swap(a, b);
-            if(c.y < b.y) std::swap(b, c);
-            if(b.y < a.y) std::swap(a, b);
+            Vec3d p0 = b.pos() - a.pos();
+            Vec3d p1 = c.pos() - a.pos();
+            _normal = p0.cross(p1).normalized();
 
-            _t = Vec2i(std::floor(a.x), std::floor(a.y)); _t_depth = a.z;
-            _m = Vec2i(std::floor(b.x), std::floor(b.y)); _m_depth = b.z;
-            _b = Vec2i(std::floor(c.x), std::floor(c.y)); _b_depth = c.z;
+            if(b.pos().y < a.pos().y) std::swap(a, b);
+            if(c.pos().y < b.pos().y) std::swap(b, c);
+            if(b.pos().y < a.pos().y) std::swap(a, b);
 
-            _color = color;
-        }
-
-    private:
-        int get_side_a_x(int y) 
-        {
-            return _t.x + ((y - _t.y) * (_b.x - _t.x)) / (_b.y - _t.y);
-        }
-
-        int get_side_b_x(int y) 
-        {
-            if(y < _m.y)
-                return _t.x + ((y - _t.y) * (_m.x - _t.x)) / (_m.y - _t.y);
-            else
-                return _b.x + ((y - _b.y) * (_m.x - _b.x)) / (_m.y - _b.y);
-        }
-
-        Float get_side_a_depth(int y) 
-        {
-            return _t_depth + ((y - _t.y) * (_b_depth - _t_depth)) / (_b.y - _t.y);
-        }
-
-        Float get_side_b_depth(int y) 
-        {
-            if(y < _m.y)
-                return _t_depth + ((y - _t.y) * (_m_depth - _t_depth)) / (_m.y - _t.y);
-            else
-                return _b_depth + ((y - _b.y) * (_m_depth - _b_depth)) / (_m.y - _b.y);
+            _t = a;
+            _m = b;
+            _b = c;
         }
 
     public:
-        void operator()(Image& buffer, ZBuffer& zbuffer)
+        const Vec3d& normal() const { return _normal; }
+
+        void operator()(FrameBuffer& scene)
         {
-            for(int y = _t.y; y <= _b.y; ++y)
-            {
-                Line(
-                    Vec2i(get_side_a_x(y), y), get_side_a_depth(y),
-                    Vec2i(get_side_b_x(y), y), get_side_b_depth(y),
-                    _color
-                )(buffer, zbuffer);
-            }
+            for(int y = _t.pixel().y; y < _m.pixel().y; ++y)
+                Line(_t.intersect_y(_b, y), _t.intersect_y(_m, y))(scene, _normal);
+
+            for(int y = _m.pixel().y; y <= _b.pixel().y; ++y)
+                Line(_t.intersect_y(_b, y), _m.intersect_y(_b, y))(scene, _normal);
         }
     };
 

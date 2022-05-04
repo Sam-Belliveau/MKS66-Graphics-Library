@@ -57,6 +57,22 @@ namespace SPGL
         template<class FT>
         inline constexpr FT rfpart(FT x)
         { return FT(1.0) - fpart(x); }
+
+        template<class A, class B, class C>
+        inline constexpr C map(A x, B input_start, B input_end, C output_start, C output_end)
+        { 
+            return (input_start == input_end) 
+                ? output_start 
+                : output_start + ((x - input_start) * (output_end - output_start)) / (input_end - input_start); 
+        }
+
+        template<class A, class B, class C>
+        inline constexpr C map_x_to_y(A x, const Vec2<B>& start, const Vec2<C>& end)
+        { return map(x, start.x, end.x, start.y, end.y); }
+
+        template<class A, class B, class C>
+        inline constexpr C map_y_to_x(A y, const Vec2<B>& start, const Vec2<C>& end)
+        { return map(y, start.y, end.y, start.x, end.x); }
     }
 
 }

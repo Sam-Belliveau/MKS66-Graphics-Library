@@ -112,9 +112,24 @@ namespace SPGL // Definitions
 
         static Color RandomHue() 
         {
-            static std::default_random_engine random_engine;
+            static std::default_random_engine rng;
             static std::uniform_real_distribution hue(0, 360);
-            return HSV(hue(random_engine), 1.0, 1.0);
+            return HSV(hue(rng), 1.0, 1.0);
+        }
+
+        static Color RandomHSV() 
+        {
+            static std::default_random_engine rng;
+            static std::uniform_real_distribution hue(0.0, 360.0);
+            static std::uniform_real_distribution scalar(0.0, 1.0);
+            return HSV(hue(rng), scalar(rng), scalar(rng));
+        }
+
+        static Color Random() 
+        {
+            static std::default_random_engine rng;
+            static std::uniform_real_distribution scalar(0.0, 1.0);
+            return Color(scalar(rng), scalar(rng), scalar(rng));
         }
 
         // Bytes Constructor
@@ -142,6 +157,9 @@ namespace SPGL // Definitions
 
         constexpr Color& operator-=(const Color& rhs)
         { r -= rhs.r; g -= rhs.g; b -= rhs.b; return clamp(); }
+
+        constexpr Color& operator*=(const Color& rhs)
+        { r *= rhs.r; g *= rhs.g; b *= rhs.b; return clamp(); }
 
         constexpr Color& operator*=(const RepT rhs)
         { r *= rhs; g *= rhs; b *= rhs; return clamp(); }
@@ -211,6 +229,9 @@ namespace SPGL // Implementation
 
     constexpr Color operator-(Color lhs, const Color& rhs) 
     { return lhs -= rhs; }
+
+    constexpr Color operator*(Color lhs, const Color& rhs) 
+    { return lhs *= rhs; }
 
     constexpr Color operator*(Color lhs, const Color::RepT rhs) 
     { return lhs *= rhs; }

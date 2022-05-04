@@ -41,21 +41,24 @@ namespace SPGL
     {
 
     private:
-        Image _buffer;
-        ZBuffer _zbuffer;
+        FrameBuffer _scene;
         EdgeListd _edges;
         EdgeListd _triangles;
         std::stack<Mat4d> _transform;
 
     public:
         Engine(Size x, Size y)
-            : _buffer{x, y}
-            , _zbuffer{x, y}
+            : _scene{x, y}
             , _edges{}
             , _transform{} 
         {
             for(Size i = 0; i < 64; ++i) 
                 _transform.push(Mat4d::Identity());
+            
+            _scene.add_light(Vertex(Vec3d(0, 1, 0), 0.75 * Color::White));
+            _scene.add_light(Vertex(Vec3d(0, -1, -1), 0.75 * Color::Green));
+            _scene.add_light(Vertex(Vec3d(1, -1, 1), 0.75 * Color::Red));
+            _scene.add_light(Vertex(Vec3d(-1, -1, 1), 0.75 * Color::Blue));
         }
 
     public:
@@ -91,30 +94,24 @@ namespace SPGL
         {
             const Vec3d view(0, 0, 1);
 
-            for(Size i = 0; i + 1 < _edges.size(); i += 2)
+            for(Size i = 1; i < _edges.size(); i += 2)
             {
-                Vec4d a = _edges[i + 0];
-                Vec4d b = _edges[i + 1];
-                Line line(Vec3d(a.x, b.y, a.z), Vec3d(b.x, b.y, b.z), Color::RandomHue());
-                line(_buffer, _zbuffer);
+                Line(
+                    Vertex(_edges[i - 1]),
+                    Vertex(_edges[i - 0])
+                )(_scene);
             }
 
-            for(Size i = 0; i + 2 < _triangles.size(); i += 3)
+            for(Size i = 2; i < _triangles.size(); i += 3)
             {
-                Vec4d am = _triangles[i + 0];
-                Vec4d bm = _triangles[i + 1];
-                Vec4d cm = _triangles[i + 2];
+                Triangle triangle{
+                    Vertex(_triangles[i - 2]),
+                    Vertex(_triangles[i - 1]),
+                    Vertex(_triangles[i - 0])
+                };
 
-                Vec3d a = am, b = bm, c = cm;
-
-                Vec3d p0 = b - a;
-                Vec3d p1 = c - a;
-                Vec3d n = p0.cross(p1);
-
-                if(view.dot(n) > 0)
-                {
-                    Triangle(a, b, c, Color::RandomHue())(_buffer, _zbuffer);
-                }
+                if(view.dot(triangle.normal()) >= 0)
+                    triangle(_scene);
             }
 
             _triangles.clear();
@@ -254,31 +251,31 @@ namespace SPGL
                 Float64 radius;
                 command >> pos >> radius;
 
-                const Float64 dp = Math::PI / 16.0;
-                const Float64 dt = Math::PI / 8.0;
+                const Float64 dp = Math::PI / 128.0;
+                const Float64 dt = Math::PI / 64.0;
                 for(Float64 phi = 0.0; phi < Math::PI; phi += dp)
                 {
                     for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += dt)
                     {
-                        Vec3d da = radius * Vec3d(
+                        Vec3d da = pos + radius * Vec3d(
                             std::cos(phi),
                             std::sin(phi) * std::cos(theta),
                             std::sin(phi) * std::sin(theta)
                         );
 
-                        Vec3d db = radius * Vec3d(
+                        Vec3d db = pos + radius * Vec3d(
                             std::cos(phi + dp),
                             std::sin(phi + dp) * std::cos(theta),
                             std::sin(phi + dp) * std::sin(theta)
                         );
 
-                        Vec3d dc = radius * Vec3d(
+                        Vec3d dc = pos + radius * Vec3d(
                             std::cos(phi + dp),
                             std::sin(phi + dp) * std::cos(theta + dt),
                             std::sin(phi + dp) * std::sin(theta + dt)
                         );
 
-                        Vec3d dd = radius * Vec3d(
+                        Vec3d dd = pos + radius * Vec3d(
                             std::cos(phi),
                             std::sin(phi) * std::cos(theta + dt),
                             std::sin(phi) * std::sin(theta + dt)
@@ -296,34 +293,34 @@ namespace SPGL
                 Float64 radius2;
                 command >> pos >> radius1 >> radius2;
 
-                const Float64 dp = Math::PI / 16.0;
-                const Float64 dt = Math::PI / 8.0;
+                const Float64 dp = Math::PI / 128.0;
+                const Float64 dt = Math::PI / 64.0;
                 for(Float64 phi = 0.0; phi <= 2 * Math::PI; phi += dp)
                 {
                     for(Float64 theta = 0.0; theta <= 2 * Math::PI; theta += dt)
                     {
-                        Vec3d da = Vec3d(
-                            radius2 * std::cos(phi) + radius1 * std::cos(phi) * std::cos(theta),
-                            radius1 * std::sin(theta),
-                            radius2 * std::sin(phi) + radius1 * std::sin(phi) * std::cos(theta)
+                        Vec3d da = pos + Vec3d(
+                            radius2 * std::cos(phi) + radius1 * std::cos(phi) * std::cos(theta + dt),
+                            radius1 * std::sin(theta + dt),
+                            radius2 * std::sin(phi) + radius1 * std::sin(phi) * std::cos(theta + dt)
                         );
- 
-                        Vec3d db = Vec3d(
-                            radius2 * std::cos(phi + dp) + radius1 * std::cos(phi + dp) * std::cos(theta),
-                            radius1 * std::sin(theta),
-                            radius2 * std::sin(phi + dp) + radius1 * std::sin(phi + dp) * std::cos(theta)
-                        );
- 
-                        Vec3d dc = Vec3d(
+
+                        Vec3d db = pos + Vec3d(
                             radius2 * std::cos(phi + dp) + radius1 * std::cos(phi + dp) * std::cos(theta + dt),
                             radius1 * std::sin(theta + dt),
                             radius2 * std::sin(phi + dp) + radius1 * std::sin(phi + dp) * std::cos(theta + dt)
                         );
- 
-                        Vec3d dd = Vec3d(
-                            radius2 * std::cos(phi) + radius1 * std::cos(phi) * std::cos(theta + dt),
-                            radius1 * std::sin(theta + dt),
-                            radius2 * std::sin(phi) + radius1 * std::sin(phi) * std::cos(theta + dt)
+
+                        Vec3d dc = pos + Vec3d(
+                            radius2 * std::cos(phi + dp) + radius1 * std::cos(phi + dp) * std::cos(theta),
+                            radius1 * std::sin(theta),
+                            radius2 * std::sin(phi + dp) + radius1 * std::sin(phi + dp) * std::cos(theta)
+                        );
+
+                        Vec3d dd = pos + Vec3d(
+                            radius2 * std::cos(phi) + radius1 * std::cos(phi) * std::cos(theta),
+                            radius1 * std::sin(theta),
+                            radius2 * std::sin(phi) + radius1 * std::sin(phi) * std::cos(theta)
                         );
 
                         add_quad(da, db, dc, dd);
@@ -361,7 +358,7 @@ namespace SPGL
             }},
 
             {"clear_zbuffer", [&](std::istream& command) {
-                _zbuffer.clear();
+                _scene.zbuffer().clear();
             }},
 
             {"display", [&](std::istream& command) {
@@ -369,7 +366,7 @@ namespace SPGL
                 std::ofstream file;
                 std::string temp_file_name = ".display_tmp_" + std::to_string(temp_num++) + ".ppm";
                 file.open(temp_file_name, std::ios::binary);
-                file << _buffer;
+                file << _scene.image();
                 file.close();
 
                 std::system(("open " + temp_file_name).c_str());
@@ -383,7 +380,7 @@ namespace SPGL
 
                 std::ofstream file;
                 file.open(temp_file_name.c_str(), std::ios::binary | std::ios::trunc);
-                file << _buffer;
+                file << _scene.image();
                 file.close();
 
                 std::system(("convert " + temp_file_name + " " + file_name + " && rm -f " + temp_file_name).c_str());
