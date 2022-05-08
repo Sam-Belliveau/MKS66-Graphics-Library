@@ -45,6 +45,8 @@ namespace SPGL // Definitions
         using reverse_iterator = std::vector<value_type>::reverse_iterator;
         using const_reverse_iterator = std::vector<value_type>::const_reverse_iterator;
 
+        constexpr static value_type initial_value = -std::numeric_limits<value_type>::max();
+
     public: /* Information */
         Vec2s vecsize() const { return _img_size; }
         Size height() const { return _img_size.y; }
@@ -68,12 +70,12 @@ namespace SPGL // Definitions
         // Create Functions
         ZBuffer(Size x, Size y)
             : _img_size{x, y}
-            , _img_data{std::vector<value_type>(x * y, -std::numeric_limits<value_type>::max())}
+            , _img_data{std::vector<value_type>(x * y, initial_value)}
             , _garbage{} {}
 
     public: /* Accessors */
         void clear() 
-        { std::fill(_img_data.begin(), _img_data.end(), -std::numeric_limits<value_type>::max()); }
+        { std::fill(_img_data.begin(), _img_data.end(), initial_value); }
 
         /*** Single value indexing ***/
         /***/ value_type& operator[](Size i) /***/ { return _img_data[i]; }

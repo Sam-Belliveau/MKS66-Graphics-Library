@@ -18,7 +18,7 @@
 #include <algorithm>
 
 #include "../FrameBuffer.hpp"
-#include "../Vector2D.hpp"
+#include "../math/Vector2D.hpp"
 
 namespace SPGL
 {

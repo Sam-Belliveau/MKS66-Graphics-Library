@@ -18,9 +18,9 @@
 #include <algorithm>
 
 #include "Line.hpp"
-#include "../Math.hpp"
+#include "../math/Math.hpp"
+#include "../math/Vector2D.hpp"
 #include "../Image.hpp"
-#include "../Vector2D.hpp"
 
 namespace SPGL
 {

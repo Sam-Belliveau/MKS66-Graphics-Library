@@ -15,14 +15,14 @@
  */
 
 #include "graphics/Image.hpp"
-#include "graphics/PPMSupport.hpp"
-#include "graphics/Vector2D.hpp"
-#include "graphics/Vector3D.hpp"
-#include "graphics/Vector4D.hpp"
-#include "graphics/Matrix4D.hpp"
 #include "graphics/ZBuffer.hpp"
+#include "graphics/math/Vector2D.hpp"
+#include "graphics/math/Vector3D.hpp"
+#include "graphics/math/Vector4D.hpp"
+#include "graphics/math/Matrix4D.hpp"
 #include "graphics/drawers/Line.hpp"
 #include "graphics/drawers/Triangle.hpp"
+#include "graphics/effects/FXAA.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -40,7 +40,7 @@ namespace SPGL
     class Engine
     {
     public:
-        constexpr static Float kSegments = 512.0;
+        constexpr static Float kSegments = 1024.0;
 
     private:
         Color _color;
@@ -58,10 +58,10 @@ namespace SPGL
             for(Size i = 0; i < 64; ++i) 
                 _transform.push(Mat4d::Identity());
             
-            _scene.add_light(Vertex(Vec3d(0, 1, 0), 0.8 * Color::White));
-            _scene.add_light(Vertex(Vec3d(0, -1, -1), 0.2 * Color::Green));
-            _scene.add_light(Vertex(Vec3d(1, -1, 1), 0.2 * Color::Red));
-            _scene.add_light(Vertex(Vec3d(-1, -1, 1), 0.2 * Color::Blue));
+            _scene.add_light(Vertex(Vec3d(0, 1, 0), 1.0 * Color::White));
+            _scene.add_light(Vertex(Vec3d(0, -1, -1), 0.25 * Color::Green));
+            _scene.add_light(Vertex(Vec3d(1, -1, 1), 0.25 * Color::Red));
+            _scene.add_light(Vertex(Vec3d(-1, -1, 1), 0.25 * Color::Blue));
         }
 
     public:
@@ -140,10 +140,8 @@ namespace SPGL
             }},
 
             {"color", [&](std::istream& command) {
-                Color color;
-                command >> color.r >> color.g >> color.b;
-
-                _color = color;
+                command >> _color.r >> _color.g >> _color.b;
+                _color /= std::max(std::max(std::max(1.0, _color.r), _color.g), _color.b);
             }},
 
             {"line", [&](std::istream& command) {
@@ -336,12 +334,19 @@ namespace SPGL
                 _scene.zbuffer().clear();
             }},
 
+            {"sky", [&](std::istream& command) {
+                std::string sky_name;
+                command >> sky_name;
+
+                _scene.set_sky(SkyBox(sky_name));
+            }},
+
             {"display", [&](std::istream& command) {
                 static Size temp_num = 0;
                 std::ofstream file;
                 std::string temp_file_name = ".display_tmp_" + std::to_string(temp_num++) + ".ppm";
                 file.open(temp_file_name, std::ios::binary);
-                file << _scene.image();
+                file << FXAA::apply(_scene.image());
                 file.close();
 
                 std::cerr << "# of Triangles: " << tri_count << "\n";
@@ -357,7 +362,7 @@ namespace SPGL
 
                 std::ofstream file;
                 file.open(temp_file_name.c_str(), std::ios::binary | std::ios::trunc);
-                file << _scene.image();
+                file << FXAA::apply(_scene.image());
                 file.close();
 
                 std::system(("convert " + temp_file_name + " " + file_name + " && rm -f " + temp_file_name).c_str());

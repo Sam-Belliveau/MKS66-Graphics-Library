@@ -11,5 +11,4 @@ int main()
 
     SPGL::Engine engine(500, 500);
     while(engine.parse_command(file)) {}
-
 }

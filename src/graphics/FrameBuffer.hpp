@@ -19,8 +19,9 @@
 #include <stdexcept> // std::out_of_range
 #include <iterator> // std::reverse_iterator
 
+#include "math/Vector2D.hpp"
 #include "TypeNames.hpp"
-#include "Vector2D.hpp"
+#include "SkyBox.hpp"
 #include "Color.hpp"
 #include "ZBuffer.hpp"
 #include "Image.hpp"
@@ -31,14 +32,16 @@ namespace SPGL
     struct FrameBuffer
     {
     public:
-        constexpr static Float kA = 0.1;
+        constexpr static Float kA = 0.0;
         constexpr static Float kD = 1.0;
         constexpr static Float kS = 4.0;
+        constexpr static Float kSky = 0.25;
 
     private:
         Image _img;
         ZBuffer _zbuf;
         Vec3d _view;
+        SkyBox _sky;
         std::vector<Vertex> _lights;
 
     public:
@@ -55,6 +58,7 @@ namespace SPGL
             : _img{x, y}
             , _zbuf{x, y}
             , _view{0.0, 0.0, 1.0}
+            , _sky{}
             , _lights{} {}
 
     public:
@@ -66,6 +70,26 @@ namespace SPGL
         void add_light(const Vertex& light)
         { _lights.push_back(light); }
 
+        void set_sky(SkyBox&& sky) 
+        { 
+            _sky = sky; 
+
+            const double scale = std::hypot(_img.width(), _img.height());
+            for(int x = 0; x < _img.width(); ++x) 
+            {
+                for(int y = 0; y < _img.height(); ++y) 
+                {
+                    Vec3d offset {
+                        x - double(_img.width() / 2),
+                        y - double(_img.height() / 2),
+                        0.0
+                    };
+
+                    _img(x, y) = _sky(offset - _view * scale);
+                }   
+            }
+        }
+
         void operator()(const Vertex& p)
         { if(_zbuf.plot(p)) _img(p.pixel()) = p.color(); }
 
@@ -73,9 +97,10 @@ namespace SPGL
         { 
             if(_zbuf.plot(p)) 
             {
-                Color plot = Color::Black;
-
-                for(Vertex light : _lights)
+                Vec3d reflected = (2.0 * normal * (normal.dot(_view)) - _view);
+                Color plot = kSky * p.color() * _sky(reflected);
+                
+                for(const Vertex& light : _lights)
                 {
                     Color c = (p.color() * light.color());
                     Vec3d pos = light.pos().normalized();

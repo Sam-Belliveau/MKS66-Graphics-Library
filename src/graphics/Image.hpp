@@ -14,13 +14,14 @@
  * copies or substantial portions of the Software.
  */
 
+#include <iostream> // std::ostream
 #include <vector> // std::vector
 #include <algorithm> // std::copy
 #include <stdexcept> // std::out_of_range
 #include <iterator> // std::reverse_iterator
 
+#include "math/Vector2D.hpp"
 #include "TypeNames.hpp"
-#include "Vector2D.hpp"
 #include "Color.hpp"
 
 namespace SPGL // Definitions
@@ -104,6 +105,24 @@ namespace SPGL // Definitions
         /***/ value_type& operator()(Vec2s i) /***/ { return get(i.x, i.y); }
         const value_type& operator()(Vec2s i) const { return get(i.x, i.y); }
 
+        value_type interpolate(Vec2d i) const
+        {
+            Float x_f = Math::fpart(i.x);
+            Float y_f = Math::fpart(i.y);
+            
+            Float x_rf = 1.0 - x_f;
+            Float y_rf = 1.0 - y_f;
+
+            Vec2i pos(std::floor(i.x), std::floor(i.y));
+
+            return (
+                x_rf * y_rf * get(pos + Vec2i(0, 0)) +
+                x_f  * y_rf * get(pos + Vec2i(1, 0)) +
+                x_rf * y_f  * get(pos + Vec2i(0, 1)) +
+                x_f  * y_f  * get(pos + Vec2i(1, 1)) 
+            );
+        } 
+
     private: /* Raw Data */
         std::vector<value_type> _img_data;
         Vec2s _img_size;
@@ -130,6 +149,7 @@ namespace SPGL // Definitions
         Image dither(const std::function<Color(Color)>, const Color::RepT = 1.0) const;
         Image dither_fast(const std::function<Color(Color)>) const;
         Image resize_nearest(const Size x, const Size y) const;
+        Image resize_linear(const Size x, const Size y) const;
     };
 }
 
@@ -243,5 +263,79 @@ namespace SPGL
         }
 
         return result;
+    }
+
+    Image Image::resize_linear(const Size x, const Size y) const
+    {
+        Image result(x, y);
+
+        for(Size ix = 0; ix < x; ++ix)
+        for(Size iy = 0; iy < y; ++iy)
+        {
+            result(ix, iy) = interpolate(Vec2d(
+                Float(ix * width()) / x, 
+                Float(iy * height()) / y
+            ));
+        }
+
+        return result;
+    }
+}
+
+namespace SPGL
+{
+    namespace PPM
+    {
+        const char* MAGIC_HEADER = "P6\n";
+        const Size COLOR_DEPTH = 255;
+    }
+}
+
+namespace SPGL
+{
+    std::ostream& operator<<(std::ostream& file, const Image& image)
+    {
+        file << PPM::MAGIC_HEADER;
+        file << image.width() << ' ' << image.height() << '\n';
+        file << PPM::COLOR_DEPTH << '\n';
+        
+        for(const Color& color : image)
+        { 
+            Color::Bytes raw = color.bytes();
+            file.write(reinterpret_cast<const char*>(&raw.r), 1);
+            file.write(reinterpret_cast<const char*>(&raw.g), 1);
+            file.write(reinterpret_cast<const char*>(&raw.b), 1);
+        }
+    
+        file << '\n';
+
+        return file;
+    }
+    
+    std::istream& operator>>(std::istream& file, Image& image)
+    {
+        std::string type;
+        Size sx, sy;
+        std::string depth;
+
+        file >> type;
+        file >> sx >> sy;
+        file >> depth;
+
+        UInt8 nl;
+        file.read(reinterpret_cast<char*>(&nl), 1);
+        
+        image = Image(sx, sy);
+
+        for(Size i = 0; i < sx * sy; ++i)
+        {
+            UInt8 r, g, b;
+            file.read(reinterpret_cast<char*>(&r), 1);
+            file.read(reinterpret_cast<char*>(&g), 1);
+            file.read(reinterpret_cast<char*>(&b), 1);
+            image[i] = Color::Bytes(r, g, b);
+        }
+
+        return file;
     }
 }

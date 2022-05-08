@@ -19,8 +19,8 @@
 #include <limits>
 #include <random>
 
+#include "math/Math.hpp"
 #include "TypeNames.hpp"
-#include "Math.hpp"
 
 namespace SPGL // Definitions
 {

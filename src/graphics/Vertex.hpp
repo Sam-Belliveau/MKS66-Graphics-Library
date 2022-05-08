@@ -17,9 +17,9 @@
 #include <cmath>
 #include <array>
 
+#include "math/Vector2D.hpp"
+#include "math/Vector3D.hpp"
 #include "TypeNames.hpp"
-#include "Vector2D.hpp"
-#include "Vector3D.hpp"
 #include "Color.hpp"
 
 namespace SPGL
