@@ -28,7 +28,7 @@ namespace SPGL
         constexpr Float EDGE_THRESHOLD_MAX = 0.125;
         constexpr Float SUBPIXEL_QUALITY = 0.75;
 
-        constexpr int ITERATIONS = 12;
+        constexpr int ITERATIONS = 48;
         
 
         Float luma(const Color& color)
