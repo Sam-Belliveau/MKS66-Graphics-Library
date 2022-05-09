@@ -171,6 +171,14 @@ namespace SPGL // Definitions
         { return Color(Math::limit(r), Math::limit(g), Math::limit(b)); }
 
     public: /* Match Function */
+        constexpr RepT luma() const
+        {
+            return std::pow(
+                r * 0.299 + g * 0.587 + b * 0.114,
+                (1.0 / 2.22)
+            );
+        }
+
         constexpr RepT distance(const Color other) const
         {
             const RepT dr = r - other.r;

@@ -30,24 +30,14 @@ namespace SPGL
 
         constexpr int ITERATIONS = 48;
         
-
-        Float luma(const Color& color)
-        {
-            return std::sqrt(
-                color.r * 0.299 +
-                color.g * 0.587 + 
-                color.b * 0.114  
-            );
-        }
-
         Color get_pixel(const Image& image, const Vec2i& pos)
         {
-            const Float lumaC = luma(image(pos));
+            const Float lumaC = image(pos).luma();
 
-            const Float lumaU = luma(image(pos + Vec2i(+0,+1)));
-            const Float lumaD = luma(image(pos + Vec2i(+0,-1)));
-            const Float lumaL = luma(image(pos + Vec2i(-1,+0)));
-            const Float lumaR = luma(image(pos + Vec2i(+1,+0)));
+            const Float lumaU = image(pos + Vec2i(+0,+1)).luma();
+            const Float lumaD = image(pos + Vec2i(+0,-1)).luma();
+            const Float lumaL = image(pos + Vec2i(-1,+0)).luma();
+            const Float lumaR = image(pos + Vec2i(+1,+0)).luma();
 
             const Float luma_max = std::max({lumaC, lumaU, lumaD, lumaL, lumaR});
             const Float luma_min = std::min({lumaC, lumaU, lumaD, lumaL, lumaR});
@@ -57,10 +47,10 @@ namespace SPGL
             if (luma_range < std::max(EDGE_THRESHOLD_MIN, luma_max * EDGE_THRESHOLD_MAX))
             { return image(pos); }
 
-            const Float lumaUR = luma(image(pos + Vec2i(+1,+1)));
-            const Float lumaUL = luma(image(pos + Vec2i(-1,+1)));
-            const Float lumaDR = luma(image(pos + Vec2i(+1,-1)));
-            const Float lumaDL = luma(image(pos + Vec2i(-1,-1)));
+            const Float lumaUR = image(pos + Vec2i(+1,+1)).luma();
+            const Float lumaUL = image(pos + Vec2i(-1,+1)).luma();
+            const Float lumaDR = image(pos + Vec2i(+1,-1)).luma();
+            const Float lumaDL = image(pos + Vec2i(-1,-1)).luma();
 
             const Float lumaDU = lumaD + lumaU;
             const Float lumaLR = lumaL + lumaR;
@@ -115,8 +105,8 @@ namespace SPGL
             
             for(int i = 0; i < ITERATIONS; ++i)
             {
-                if(!reached1) lumaE1 = luma(image.interpolate(pos1)) - luma_avg;
-                if(!reached2) lumaE2 = luma(image.interpolate(pos2)) - luma_avg;
+                if(!reached1) lumaE1 = image.interpolate(pos1).luma() - luma_avg;
+                if(!reached2) lumaE2 = image.interpolate(pos2).luma() - luma_avg;
 
                 reached1 = std::abs(lumaE1) >= gradient;
                 reached2 = std::abs(lumaE2) >= gradient;
