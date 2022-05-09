@@ -171,11 +171,13 @@ namespace SPGL // Definitions
         { return Color(Math::limit(r), Math::limit(g), Math::limit(b)); }
 
     public: /* Match Function */
-        constexpr RepT luma() const
+        constexpr RepT luma(const Float gamma = 2.22) const
         {
             return std::pow(
-                r * 0.299 + g * 0.587 + b * 0.114,
-                (1.0 / 2.22)
+                std::pow(r, gamma) * 0.299 + 
+                std::pow(g, gamma) * 0.587 + 
+                std::pow(b, gamma) * 0.114,
+                (1.0 / gamma)
             );
         }
 

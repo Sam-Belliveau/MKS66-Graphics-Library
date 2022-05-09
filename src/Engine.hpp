@@ -141,7 +141,7 @@ namespace SPGL
 
             {"color", [&](std::istream& command) {
                 command >> _color.r >> _color.g >> _color.b;
-                _color /= std::max(std::max(std::max(1.0, _color.r), _color.g), _color.b);
+                _color /= 255.0;
             }},
 
             {"line", [&](std::istream& command) {

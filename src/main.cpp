@@ -9,6 +9,6 @@ int main()
     std::ifstream file;
     file.open("./script.txt");
 
-    SPGL::Engine engine(500, 500);
+    SPGL::Engine engine(2500, 2500);
     while(engine.parse_command(file)) {}
 }
