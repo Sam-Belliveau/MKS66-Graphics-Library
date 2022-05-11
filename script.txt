@@ -2,8 +2,7 @@
 # FOR MODEL 
 
 push
-scale 5 5 5
-sky resources/Sky.ppm
+sky resources/Obama.ppm
 push
 move
 250 250 0

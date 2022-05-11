@@ -123,6 +123,86 @@ namespace SPGL // Definitions
             );
         } 
 
+        value_type sample_box(Vec2d beg, Vec2d end) const
+        {
+            if(end.x < beg.x) std::swap(beg.x, end.x);
+            if(end.y < beg.y) std::swap(beg.y, end.y);
+         
+            const Size fy_beg = std::floor(beg.y);
+            const Size fy_end = std::floor(end.y);
+            const Size fx_beg = std::floor(beg.x);
+            const Size fx_end = std::floor(end.x);
+
+            const Float px_beg = 1 + fx_beg - beg.x;
+            const Float py_beg = 1 + fy_beg - beg.y;
+            
+            const Float px_end = end.x - fx_end;
+            const Float py_end = end.y - fy_end;
+
+            ColorAverage color;   
+            
+            color.add(get(fx_beg, fy_beg), px_beg * py_beg);
+            color.add(get(fx_end, fy_beg), px_end * py_beg);
+            color.add(get(fx_beg, fy_end), px_beg * py_end);
+            color.add(get(fx_end, fy_end), px_end * py_end);
+
+            for(Size x = fx_beg + 1; x < fx_end; ++x) 
+            {
+                color.add(get(x, fy_beg), py_beg);
+                color.add(get(x, fy_end), py_end);
+            }
+
+            for(Size y = fy_beg + 1; y < fy_end; ++y) 
+            {
+                color.add(get(fx_beg, y), px_beg);
+                color.add(get(fx_end, y), px_end);
+                for(Size x = fx_beg + 1; x < fx_end; ++x) 
+                    color.add(get(x, y));
+            }
+
+            return color.result();
+        }
+
+        value_type sample_box_luma(Vec2d beg, Vec2d end) const
+        {
+            if(end.x < beg.x) std::swap(beg.x, end.x);
+            if(end.y < beg.y) std::swap(beg.y, end.y);
+         
+            const Size fy_beg = std::floor(beg.y);
+            const Size fy_end = std::floor(end.y);
+            const Size fx_beg = std::floor(beg.x);
+            const Size fx_end = std::floor(end.x);
+
+            const Float px_beg = 1 + fx_beg - beg.x;
+            const Float py_beg = 1 + fy_beg - beg.y;
+            
+            const Float px_end = end.x - fx_end;
+            const Float py_end = end.y - fy_end;
+
+            ColorAverage color;   
+            
+            color.add(get(fx_beg, fy_beg), px_beg * py_beg);
+            color.add(get(fx_end, fy_beg), px_end * py_beg);
+            color.add(get(fx_beg, fy_end), px_beg * py_end);
+            color.add(get(fx_end, fy_end), px_end * py_end);
+
+            for(Size x = fx_beg + 1; x < fx_end; ++x) 
+            {
+                color.add(get(x, fy_beg), py_beg);
+                color.add(get(x, fy_end), py_end);
+            }
+
+            for(Size y = fy_beg + 1; y < fy_end; ++y) 
+            {
+                color.add(get(fx_beg, y), px_beg);
+                color.add(get(fx_end, y), px_end);
+                for(Size x = fx_beg + 1; x < fx_end; ++x) 
+                    color.add(get(x, y));
+            }
+
+            return color.result();
+        }
+
     private: /* Raw Data */
         std::vector<value_type> _img_data;
         Vec2s _img_size;
@@ -150,6 +230,9 @@ namespace SPGL // Definitions
         Image dither_fast(const std::function<Color(Color)>) const;
         Image resize_nearest(const Size x, const Size y) const;
         Image resize_linear(const Size x, const Size y) const;
+        Image resize_samples(const Size x, const Size y) const;
+        Image gaussian_blur(const int radius) const;
+        Image box_blur(const int radius) const;
     };
 }
 
@@ -277,6 +360,79 @@ namespace SPGL
                 Float(iy * height()) / y
             ));
         }
+
+        return result;
+    }
+
+    Image Image::resize_samples(const Size x, const Size y) const
+    {
+        Image result(x, y);
+
+        for(Size ix = 0; ix < x; ++ix)
+        for(Size iy = 0; iy < y; ++iy)
+        {
+            result(ix, iy) = sample_box(
+                Vec2d(
+                    Float((ix + 0.0) * width()) / x, 
+                    Float((iy + 0.0) * height()) / y
+                ),
+
+                Vec2d(
+                    Float((ix + 1.0) * width()) / x, 
+                    Float((iy + 1.0) * height()) / y
+                )
+            );
+        }
+
+        return result;
+    }
+}
+
+namespace SPGL 
+{
+    Image Image::box_blur(const int radius) const
+    { 
+        Image out_h(width(), height());
+        Image out(width(), height());
+
+        for(int x = 0; x < width(); ++x)
+        {
+            ColorAverage pixel;
+            for(int iy = 0 - radius; iy < 0 + radius; ++iy)
+                pixel.add(get(x, iy));
+
+            for(int y = 0; y < height(); ++y)
+            {
+                pixel.add(get(x, y + radius));
+                out_h(x, y) = pixel.result();
+                pixel.sub(get(x, y - radius));
+            }
+        }
+
+        for(int y = 0; y < height(); ++y)
+        {
+            ColorAverage pixel;
+            for(int ix = 0 - radius; ix < 0 + radius; ++ix)
+                pixel.add(out_h(ix, y));
+
+            for(int x = 0; x < width(); ++x)
+            {
+                pixel.add(out_h(x + radius, y));
+                out(x, y) = pixel.result();
+                pixel.sub(out_h(x - radius, y));
+            }
+        }
+
+        return out;
+    }
+
+    Image Image::gaussian_blur(const int radius) const
+    {
+        Image result(*this);
+        const int w = std::sqrt(radius);
+
+        for(int i = 0; i < w; ++i)
+            result = result.box_blur(w);
 
         return result;
     }

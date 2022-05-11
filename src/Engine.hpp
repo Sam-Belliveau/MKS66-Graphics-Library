@@ -346,7 +346,9 @@ namespace SPGL
                 std::ofstream file;
                 std::string temp_file_name = ".display_tmp_" + std::to_string(temp_num++) + ".ppm";
                 file.open(temp_file_name, std::ios::binary);
-                file << FXAA::apply(_scene.image());
+
+                Image img = FXAA::apply(_scene.image());
+                file << img;
                 file.close();
 
                 std::cerr << "# of Triangles: " << tri_count << "\n";

@@ -181,6 +181,15 @@ namespace SPGL // Definitions
             );
         }
 
+        constexpr Color pow(const Float gamma) const
+        {
+            return Color(
+                std::pow(r, gamma),
+                std::pow(g, gamma),
+                std::pow(b, gamma)
+            );
+        }
+
         constexpr RepT distance(const Color other) const
         {
             const RepT dr = r - other.r;
@@ -268,4 +277,45 @@ namespace SPGL // Implementation
     const Color Color::Yellow = Color(1.0, 1.0, 0.0);
     const Color Color::Cyan   = Color(0.0, 1.0, 1.0);
     const Color Color::Purple = Color(1.0, 0.0, 1.0);
+}
+
+namespace SPGL
+{
+    struct ColorAverage
+    {
+    private:
+        bool _luma;
+        Float _gamma;
+        Float _total;
+        Color _color;
+
+    public:
+        ColorAverage(const Float gamma = 2.22, const bool luma = true) 
+            : _luma{luma}
+            , _gamma{gamma}
+            , _total{0}
+            , _color{} {}
+
+        ColorAverage(const ColorAverage& other) = default;
+        ColorAverage& operator=(const ColorAverage& other) = default;
+
+    public:
+        ColorAverage& add(const Color& color, Float weight = 1.0)
+        {
+            if(_luma) weight *= color.luma();
+            _total += weight;
+            _color += weight * color.pow(_gamma);
+            return *this;
+        }
+
+        ColorAverage& sub(const Color& color, Float weight = 1.0)
+        {
+            if(_luma) weight *= color.luma();
+            _total -= weight;
+            _color -= weight * color.pow(_gamma);
+            return *this;
+        }
+
+        Color result() const { return (_color / _total).pow(1.0 / _gamma); }
+    };
 }

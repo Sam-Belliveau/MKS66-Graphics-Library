@@ -44,16 +44,28 @@ namespace SPGL
         SkyBox(SkyBox&& other) = default;
         SkyBox& operator=(SkyBox&& other) = default;
         
-    public:
-        Color operator()(Vec3d dir)
+    private:
+        Vec2d get_pixel(Vec3d dir) const
         {
             dir = dir.normalized();
 
             Float x_ang = std::atan2(dir.z, dir.x);
-            return _image.interpolate(Vec2d(
+            return Vec2d(
                 Math::map(x_ang,    -Math::PI,  Math::PI,   0.0, _image.width() - 1.0), 
                 Math::map(dir.y,    -1.0,       1.0,        0.0, _image.height() - 1.0)
-            ));
+            );
+        }
+
+    public:
+        Color operator()(Vec3d dir) const
+        { return _image.interpolate(get_pixel(dir)); }
+
+        Color diffuse(Vec3d dir, Float dev = 0.25) const
+        {
+            return _image.sample_box(
+                get_pixel(dir + Vec3d(dev, dev, dev)),
+                get_pixel(dir - Vec3d(dev, dev, dev))
+            );
         }
     };
 }

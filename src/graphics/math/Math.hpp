@@ -73,6 +73,10 @@ namespace SPGL
         template<class A, class B, class C>
         inline constexpr C map_y_to_x(A y, const Vec2<B>& start, const Vec2<C>& end)
         { return map(y, start.y, end.y, start.x, end.x); }
+
+        template<class FT>
+        inline constexpr FT gauss(const FT x)
+        { return std::exp(-x * x); }
     }
 
 }
