@@ -21,7 +21,7 @@
 #include "../TypeNames.hpp"
 #include "Vector3D.hpp"
 
-namespace SPGL 
+namespace SPGL
 {
     template<typename T>
     class Vec4 
@@ -33,6 +33,7 @@ namespace SPGL
         constexpr Vec4() : x(0), y(0), z(0), w(0) {}
         constexpr Vec4(const T x, const T y, const T z, const T w = T(1.0)) : x(x), y(y), z(z), w(w) {} 
         constexpr Vec4(const std::array<T, 4>& arr) : x(arr[0]), y(arr[1]), z(arr[2]), w(arr[3]) {} 
+        constexpr Vec4(const T* arr) : x(arr[0]), y(arr[1]), z(arr[2]), w(arr[3]) {} 
 
         // Copy Constructors
         constexpr Vec4(const Vec4 &in) = default;

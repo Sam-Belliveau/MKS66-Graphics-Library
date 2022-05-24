@@ -20,7 +20,7 @@
 #include <cmath>
 #include <array>
 
-namespace SPGL 
+namespace SPGL
 {
     template<typename T>
     class Mat4 {

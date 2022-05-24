@@ -32,7 +32,9 @@ namespace SPGL
         // Default Constructor
         constexpr Vec2() : x{0}, y{0} {}
         constexpr Vec2(const T ix, const T iy) : x{ix}, y{iy} {}
-        constexpr Vec2(const std::array<T, 3>& arr) : x(arr[0]), y(arr[1]) {} 
+        constexpr Vec2(const std::array<T, 3>& arr) : x(arr[0]), y(arr[1]) {}         
+        constexpr Vec2(const T* arr) : x(arr[0]), y(arr[1]) {} 
+
 
         // Copy Constructors
         constexpr Vec2(const Vec2 &in) = default;

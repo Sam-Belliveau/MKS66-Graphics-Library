@@ -16,7 +16,7 @@
 
 #include "../TypeNames.hpp"
 
-namespace SPGL 
+namespace SPGL
 {
     namespace Math 
     {

@@ -388,7 +388,7 @@ namespace SPGL
     }
 }
 
-namespace SPGL 
+namespace SPGL
 {
     Image Image::box_blur(const int radius) const
     { 

@@ -20,7 +20,7 @@
 #include "../TypeNames.hpp"
 #include "Vector2D.hpp"
 
-namespace SPGL 
+namespace SPGL
 {
     template<typename T>
     class Vec3 
@@ -32,6 +32,7 @@ namespace SPGL
         constexpr Vec3() : x(0), y(0), z(0) {}
         constexpr Vec3(const T x, const T y, const T z) : x(x), y(y), z(z) {} 
         constexpr Vec3(const std::array<T, 3>& arr) : x(arr[0]), y(arr[1]), z(arr[2]) {} 
+        constexpr Vec3(const T* arr) : x(arr[0]), y(arr[1]), z(arr[2]) {} 
 
         // Copy Constructors
         constexpr Vec3(const Vec3 &in) = default;

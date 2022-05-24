@@ -77,6 +77,13 @@ namespace SPGL // Definitions
                         , g{Math::limit(lum)}
                         , b{Math::limit(lum)} { }
 
+        // Pointer Constructor
+        template<class T>
+        constexpr Color(const T* arr)
+                        : r{Math::limit(arr[0])}
+                        , g{Math::limit(arr[1])}
+                        , b{Math::limit(arr[2])} { }
+
         // HSV Constructor
         constexpr static Color HSV(const RepT h, RepT s = RepT(1.0), RepT v = RepT(1.0))
         {
