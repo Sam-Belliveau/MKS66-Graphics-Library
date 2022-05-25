@@ -2633,7 +2633,7 @@ int main(int argc, char **argv) {
   //COMMENT OUT PRINT_PCODE AND UNCOMMENT
   //MY_MAIN IN ORDER TO RUN YOUR CODE
 
-  print_pcode();
+//   print_pcode();
   my_main();
 
   return 0;

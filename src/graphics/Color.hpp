@@ -95,8 +95,8 @@ namespace SPGL // Definitions
 
             if (RepT(0.0) <= s)
             {
-                constexpr RepT SCALE = RepT(1.0) / RepT(60.0);
-                const RepT hue = Math::loop(h * SCALE, RepT(6.0));
+                constexpr RepT HUE_SCALE = RepT(1.0) / RepT(60.0);
+                const RepT hue = Math::loop(h * HUE_SCALE, RepT(6.0));
                 const RepT fract = Math::loop(hue);
                 
                 const RepT p = v * (RepT(1.0) - (s));

@@ -19,6 +19,7 @@
 #include <stdexcept> // std::out_of_range
 #include <iterator> // std::reverse_iterator
 
+#include "../legacy/symtab.h"
 #include "math/Vector2D.hpp"
 #include "TypeNames.hpp"
 #include "SkyBox.hpp"
@@ -31,18 +32,15 @@ namespace SPGL
 
     struct FrameBuffer
     {
-    public:
-        constexpr static Float kA = 0.0;
-        constexpr static Float kD = 1.0;
-        constexpr static Float kS = 4.0;
-        constexpr static Float kSky = 0.25;
-
     private:
         Image _img;
         ZBuffer _zbuf;
         Vec3d _view;
-        SkyBox _sky;
         std::vector<Vertex> _lights;
+
+        Color _kA = 0.0;  
+        Color _kD = 1.0;   
+        Color _kS = 4.0;
 
     public:
         // Default Constructor
@@ -58,10 +56,21 @@ namespace SPGL
             : _img{x, y}
             , _zbuf{x, y}
             , _view{0.0, 0.0, 1.0}
-            , _sky{}
+            , _kA{}, _kD{}, _kS{}
             , _lights{} {}
 
     public:
+        void set_material(SYMTAB* constants)
+        {
+            if(constants == NULL) return;
+            if(constants->type != SYM_CONSTANTS) return;
+            if(constants->s.c == NULL) return;
+            
+            _kA = Color(constants->s.c->r[0], constants->s.c->g[0], constants->s.c->b[0]);
+            _kD = Color(constants->s.c->r[1], constants->s.c->g[1], constants->s.c->b[1]);
+            _kS = Color(constants->s.c->r[2], constants->s.c->g[2], constants->s.c->b[2]);
+        }
+
         const Vec3d& view() const { return _view; }
 
         void set_view(const Vec3d& view)
@@ -69,27 +78,7 @@ namespace SPGL
 
         void add_light(const Vertex& light)
         { _lights.push_back(light); }
-
-        void set_sky(SkyBox&& sky) 
-        { 
-            _sky = sky; 
-
-            const double scale = std::hypot(_img.width(), _img.height());
-            for(int x = 0; x < _img.width(); ++x) 
-            {
-                for(int y = 0; y < _img.height(); ++y) 
-                {
-                    Vec3d offset {
-                        x - double(_img.width() / 2),
-                        y - double(_img.height() / 2),
-                        0.0
-                    };
-
-                    _img(x, y) = _sky(offset - _view * scale);
-                }   
-            }
-        }
-
+        
         void operator()(const Vertex& p)
         { if(_zbuf.plot(p)) _img(p.pixel()) = p.color(); }
 
@@ -98,7 +87,7 @@ namespace SPGL
             if(_zbuf.plot(p)) 
             {
                 Vec3d reflected = (2.0 * normal * (normal.dot(_view)) - _view);
-                Color plot = kSky * p.color() * _sky(reflected);
+                Color plot;
                 
                 for(const Vertex& light : _lights)
                 {
@@ -108,9 +97,9 @@ namespace SPGL
                     Float spec = std::max(0.0, (2.0 * normal * cos - pos).normalized().dot(_view));
                     spec *= spec; spec *= spec; spec *= spec; spec *= spec; spec *= spec;
                     
-                    plot += kA * c;
-                    plot += kD * c * cos;
-                    plot += kS * c * spec;
+                    plot += _kA * c;
+                    plot += _kD * c * cos;
+                    plot += _kS * c * spec;
                 }
                 
                 _img(p.pixel()) = plot.clamped(); 
