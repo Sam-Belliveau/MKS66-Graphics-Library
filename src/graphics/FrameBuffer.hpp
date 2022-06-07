@@ -57,25 +57,30 @@ namespace SPGL
             : _img{x, y}
             , _zbuf{x, y}
             , _view{0.0, 0.0, 1.0}
-            , _sky{"./resources/Sky.ppm"}
+            , _sky{}
             , _kA{}, _kD{}, _kS{}
             , _lights{} 
             {
-                const double scale = std::hypot(_img.width(), _img.height());
-                for(int x = 0; x < _img.width(); ++x) 
-                {
-                    for(int y = 0; y < _img.height(); ++y) 
-                    {
-                        Vec3d offset {
-                            x - double(_img.width() / 2),
-                            y - double(_img.height() / 2),
-                            0.0
-                        };
-
-                        _img(x, y) = _sky(offset - _view * scale);
-                    }   
-                }
             }
+
+        void reset()
+        {
+            const double scale = std::hypot(_img.width(), _img.height());
+            for(int x = 0; x < _img.width(); ++x) 
+            {
+                for(int y = 0; y < _img.height(); ++y) 
+                {
+                    Vec3d offset {
+                        x - double(_img.width() / 2),
+                        y - double(_img.height() / 2),
+                        0.0
+                    };
+
+                    _img(x, y) = _sky.specular(offset - _view * scale);
+                    _zbuf(x, y) = ZBuffer::initial_value;
+                }   
+            }
+        }
 
     public:
         void set_material(SYMTAB* constants)
@@ -90,8 +95,8 @@ namespace SPGL
             } else
             {
                 _kA = Color(0.1, 0.1, 0.1);
-                _kD = Color(0.3, 0.3, 0.3);
-                _kS = Color(0.8, 0.8, 0.8);
+                _kD = Color(0.8, 0.8, 0.8);
+                _kS = Color(0.3, 0.3, 0.3);
             }
         }
 
@@ -111,20 +116,9 @@ namespace SPGL
             if(_zbuf.plot(p)) 
             {
                 Vec3d reflected = (2.0 * normal * (normal.dot(_view)) - _view);
-                Color plot = _sky(reflected) * _kS;
-                
-                for(const Vertex& light : _lights)
-                {
-                    Color c = (light.color());
-                    Vec3d pos = light.pos().normalized();
-                    Float cos = std::max(0.0, pos.dot(normal));
-                    Float spec = std::max(0.0, (2.0 * normal * cos - pos).normalized().dot(_view));
-                    spec *= spec; spec *= spec; spec *= spec; spec *= spec; spec *= spec;
-                    
-                    plot += _kA;
-                    plot += _kD * cos;
-                    plot += _kS * spec;
-                }
+                Color plot = _kA;
+                plot += _kD * _sky.diffuse(normal);
+                plot += _kS * _sky.specular(reflected);
                 
                 _img(p.pixel()) = plot.clamped(); 
             }
