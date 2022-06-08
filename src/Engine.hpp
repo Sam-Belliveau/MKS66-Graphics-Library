@@ -61,11 +61,8 @@ namespace SPGL
             for(Size i = 0; i < 64; ++i) 
                 _transform.push(Mat4d::Identity());
             _scene.reset();
-<<<<<<< HEAD
             
             _scene.add_light(Vertex(Vec3d(1, 0.5, 1), 1.0 * Color::White));
-=======
->>>>>>> b187a9468f9ec3869020303165fcf415a3a88182
         }
 
     public:

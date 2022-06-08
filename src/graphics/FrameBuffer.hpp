@@ -57,10 +57,11 @@ namespace SPGL
             : _img{x, y}
             , _zbuf{x, y}
             , _view{0.0, 0.0, 1.0}
-            , _sky{}
+            , _sky{"./resources/Sky.ppm"}
             , _kA{}, _kD{}, _kS{}
             , _lights{} 
             {
+                reset();
             }
 
         void reset()
@@ -97,7 +98,7 @@ namespace SPGL
             {
                 _kA = Color(0.1, 0.1, 0.1);
                 _kD = Color(0.8, 0.8, 0.8);
-                _kS = Color(0.6, 0.6, 0.6);
+                _kS = Color(0.3, 0.3, 0.3);
             }
         }
 
@@ -117,7 +118,7 @@ namespace SPGL
             if(_zbuf.plot(p)) 
             {
                 Vec3d reflected = (2.0 * normal * (normal.dot(_view)) - _view);
-                Color plot = _kA + _sky(reflected) * _kS / 10.0;
+                Color plot = _kA + _sky(reflected) * _kS;
                 
                 for(const Vertex& light : _lights)
                 {

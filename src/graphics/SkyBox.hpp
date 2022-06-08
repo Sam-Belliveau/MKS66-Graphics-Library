@@ -27,19 +27,16 @@ namespace SPGL
     {
     private:
         Image _image;
-        Image _diffuse;
 
     public:
-        SkyBox()
+        SkyBox() : _image{1, 1, Color::Black} {}
+
+        SkyBox(std::string file)
         {
-            std::fstream sky;
-            sky.open("./resources/Sky.ppm", std::fstream::in);
-            sky >> _image;
-            sky.close();
-            std::fstream sky2;
-            sky2.open("./resources/SkyDiffuse.ppm", std::fstream::in);
-            sky2 >> _diffuse;
-            sky2.close();
+            std::fstream skybox;
+            skybox.open(file.c_str(), std::fstream::in);
+            skybox >> _image;
+            skybox.close();
         }
 
         SkyBox(const SkyBox& other) = default;
@@ -60,10 +57,15 @@ namespace SPGL
         }
 
     public:
-        Color specular(Vec3d dir) const
+        Color operator()(Vec3d dir) const
         { return _image.interpolate(get_pixel(dir)); }
 
         Color diffuse(Vec3d dir, Float dev = 0.25) const
-        { return _diffuse.interpolate(get_pixel(dir)); }
+        {
+            return _image.sample_box(
+                get_pixel(dir + Vec3d(dev, dev, dev)),
+                get_pixel(dir - Vec3d(dev, dev, dev))
+            );
+        }
     };
 }

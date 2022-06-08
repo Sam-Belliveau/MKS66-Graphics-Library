@@ -45,7 +45,7 @@
 
 using namespace SPGL;
 
-constexpr static Float kSegments = 256.0;
+constexpr static Float kSegments = 1024.0;
 
 void my_main() {
 
