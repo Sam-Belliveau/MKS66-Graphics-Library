@@ -57,7 +57,7 @@ namespace SPGL
             : _img{x, y}
             , _zbuf{x, y}
             , _view{0.0, 0.0, 1.0}
-            , _sky{"./resources/Sky.ppm"}
+            , _sky{}
             , _kA{}, _kD{}, _kS{}
             , _lights{} 
             {

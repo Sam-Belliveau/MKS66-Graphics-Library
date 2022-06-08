@@ -14,5 +14,6 @@ bin/
 *.jpg
 *.jpeg
 *.bmp
+*.gif
 
 !resources/*
