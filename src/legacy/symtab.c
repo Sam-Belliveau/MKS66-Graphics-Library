@@ -70,7 +70,7 @@ void print_symtab()
     }
 }
 
-SYMTAB *add_symbol(const char *name, int type, void *data)
+SYMTAB *add_symbol(char *name, int type, void *data)
 {
   SYMTAB *t;
 
@@ -104,7 +104,8 @@ SYMTAB *add_symbol(const char *name, int type, void *data)
       t->s.l = (struct light *)data;
       break;
     case SYM_VALUE:
-      t->s.value = (double)reinterpret_cast<std::intptr_t>(data);
+      if(data != NULL)
+        t->s.value = *(double*)(int*)data;
       break;
     case SYM_FILE:
       break;
@@ -113,7 +114,7 @@ SYMTAB *add_symbol(const char *name, int type, void *data)
 }
 
 
-SYMTAB *lookup_symbol(const char *name)
+SYMTAB *lookup_symbol(char *name)
 {
   int i;
   for (i=0;i<lastsym;i++)

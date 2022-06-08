@@ -54,9 +54,13 @@ namespace SPGL
             : _color{Color::White}
             , _scene{x, y}
             , _transform{} 
+        { reset(); }
+
+        void reset() 
         {
             for(Size i = 0; i < 64; ++i) 
                 _transform.push(Mat4d::Identity());
+            _scene.reset();
             
             _scene.add_light(Vertex(Vec3d(1, 0.5, 1), 1.0 * Color::White));
         }
@@ -116,6 +120,19 @@ namespace SPGL
         }
 
         void draw_point(const Vec4d& a) { draw_line(a, a); }
+
+    public:
+        void save(const std::string& file_name)
+        {
+            std::string temp_file_name = file_name + ".ppm";
+
+            std::ofstream file;
+            file.open(temp_file_name.c_str(), std::ios::binary | std::ios::trunc);
+            file << FXAA::apply(image());
+            file.close();
+
+            std::system(("convert " + temp_file_name + " " + file_name + " && rm -f " + temp_file_name).c_str());
+        }
     };
 
 }

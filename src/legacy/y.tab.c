@@ -2613,14 +2613,15 @@ yyreturn:
 /* Other C stuff */
 extern int yyerror(char *s)
 {
-printf("Error in line %d:%s\n",lineno,s);
-return 0;
+  printf("Error in line %d:%s\n",lineno,s);
+  return 0;
 }
 
 extern "C" int yywrap()
 {
-return 1;
+  return 1;
 }
+
 
 extern FILE *yyin;
 
@@ -2633,7 +2634,7 @@ int main(int argc, char **argv) {
   //COMMENT OUT PRINT_PCODE AND UNCOMMENT
   //MY_MAIN IN ORDER TO RUN YOUR CODE
 
-//   print_pcode();
+  //print_pcode();
   my_main();
 
   return 0;

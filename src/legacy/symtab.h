@@ -32,7 +32,7 @@ typedef struct
   char *name;
   int type;
   union{
-    struct matrix* m;
+    struct matrix *m;
     struct constants *c;
     struct light *l;
     double value;
@@ -42,12 +42,11 @@ typedef struct
 extern SYMTAB symtab[MAX_SYMBOLS];
 extern int lastsym;
 
-SYMTAB *lookup_symbol(const char *name);
-SYMTAB *add_symbol(const char *name, int type, void *data);
+SYMTAB *lookup_symbol(char *name);
+SYMTAB *add_symbol(char *name, int type, void *data);
 void print_constants(struct constants *p);
 void print_light(struct light *p);
 void print_symtab();
-SYMTAB *add_symbol(const char *name, int type, void *data);
 void set_value(SYMTAB *p, double value);
 
 

@@ -31,7 +31,7 @@ COMPILER=g++ $(FLAGS)
 MKDIR=mkdir
 
 # Test File To Run With
-TEST=./face.mdl
+TEST=./simple_anim.mdl
 
 # Display File (relies on png file)
 all: $(OUTPUT)
